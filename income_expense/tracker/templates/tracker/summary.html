@@ -1,0 +1,222 @@
+{% extends "tracker/layout.html" %}
+{% load humanize %}
+{% block content %}
+<style>
+    .t2, .t1{
+        text-align: center;
+    }
+    .ie {
+        color: wheat;
+    }
+</style>
+<div class="row">
+    <div class="col-sm-6">
+        <marquee>
+            <h4 style="color: white;">This information contains the income and expense of {{user.profile.company}} for the month {{date|date:"F d, Y"}}.</h4>
+        </marquee>
+    </div>
+    <div class="col-sm-6">
+        <form action="#" method="post" class="d-flex" role="search">
+          {% csrf_token %}
+          <input class="form-control me-2" type="date" name="date">
+          <button class="btn btn-success" type="submit">Filter</button>
+        </form>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-6">
+        <div class="t1">
+            <h1 class="ie">INCOMES</h1>
+            <table class="table table-striped table-bordered table-dark table-striped-columns table-responsive-sm">
+                <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Item</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Total Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for income in incomes %}
+                <tr>
+                    <td><a type="payroll" href="#">{{income.item}}</a></td>
+                    <td style="text-align: center;">{{income.quantity}}</td>
+                    <td>{{income.amount|floatformat:2|intcomma}}</td>
+                    <td>{{income.total_amount|floatformat:2|intcomma}}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td scope="col" style="font-weight: bold; color: red;">TOTALS</td>
+                    <td style="text-align: center;" scope="col" style="font-weight: bold;">{{ income_quantity_total}}</td>
+                    <td scope="col" style="font-weight: bold;">{{ income_amount_total|floatformat:2|intcomma }}</td>
+                    <td scope="col" style="font-weight: bold;">{{ income_total_amount_total|floatformat:2|intcomma }}</td>
+                </tr>
+            </tbody>
+            </table>
+            {% if incomes.has_previous %}
+            <a class="btn btn-outline-info mb-4" href="{% url 'summary' %}?page=1">First</a>
+            <a class="btn btn-outline-info mb-4" href="{% url 'summary' %}?page={{ incomes.previous_page_number }}">Previous</a>
+            {% endif %}
+
+            {% for num in incomes.paginator.page_range %}
+            {% if incomes.number == num %}
+            <a class="btn btn-info mb-4" href="{% url 'summary' %}?page={{ num }}">{{ num }}</a>
+            {% elif num > incomes.number|add:'-3' and num < incomes.number|add:'3' %}
+            <a class="btn btn-outline-info mb-4" href="{% url 'summary' %}?page={{ num }}">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if incomes.has_next %}
+            <a class="btn btn-outline-info mb-4" href="{% url 'summary' %}?page={{ incomes.next_page_number }}">Next</a>
+            <a class="btn btn-outline-info mb-4" href="{% url 'summary' %}?page={{ incomes.paginator.num_pages }}">Last</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="t2">
+            <h1 class="ie">EXPENSES</h1>
+            <table class="table table-striped table-bordered table-dark table-striped-columns table-responsive-sm">
+                <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Item</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Total Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr>
+                    <td><a type="payroll" href="#">{{expense.item}}</a></td>
+                    <td style="text-align: center;">{{expense.quantity}}</td>
+                    <td>{{expense.amount|floatformat:2|intcomma}}</td>
+                    <td>{{expense.total_amount|floatformat:2|intcomma}}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td scope="col" style="font-weight: bold; color: red;">TOTALS</td>
+                    <td style="text-align: center;" scope="col" style="font-weight: bold;">{{ expense_quantity_total }}</td>
+                    <td scope="col" style="font-weight: bold;">{{ expense_amount_total|floatformat:2|intcomma }}</td>
+                    <td scope="col" style="font-weight: bold;">{{ expense_total_amount_total|floatformat:2|intcomma }}</td>
+                </tr>
+            </tbody>
+            </table>
+            {% if expenses.has_previous %}
+            <a class="btn btn-outline-info mb-4" href="{% url 'summary' %}?page=1">First</a>
+            <a class="btn btn-outline-info mb-4" href="{% url 'summary' %}?page={{ expenses.previous_page_number }}">Previous</a>
+            {% endif %}
+            
+            {% for num in expenses.paginator.page_range %}
+            {% if expenses.number == num %}
+            <a class="btn btn-info mb-4" href="{% url 'summary' %}?page={{ num }}">{{ num }}</a>
+            {% elif num > expenses.number|add:'-3' and num < expenses.number|add:'3' %}
+            <a class="btn btn-outline-info mb-4" href="{% url 'summary' %}?page={{ num }}">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+            
+            {% if expenses.has_next %}
+            <a class="btn btn-outline-info mb-4" href="{% url 'summary' %}?page={{ expenses.next_page_number }}">Next</a>
+            <a class="btn btn-outline-info mb-4" href="{% url 'summary' %}?page={{ expenses.paginator.num_pages }}">Last</a>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-6">
+        <div class="bg-white">
+            <canvas id="myChart2" width="400" height="300"></canvas>
+            <script>
+                var ctx = document.getElementById('myChart2').getContext('2d');
+                var myChart2 = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: [{% for income in incomes_t %} '{{ income.item }}', {% endfor %}],
+                        datasets: [{
+                            label: 'Incomes',
+                            data: [{% for income in incomes_t %} {{ income.total_amount }}, {% endfor %}],
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)',
+                                'rgba(232, 141, 64, 1)',
+                                'rgba(222, 120, 89, 1)',
+                                'rgba(180, 185, 23, 1)',
+                                'rgba(78, 100, 135, 1)',
+                                'rgba(223, 98, 163, 1)',
+                                'rgba(54, 74, 171, 1)',
+                                'rgba(111, 125, 54, 1)',
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+                });
+            </script>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="bg-white">
+            <canvas id="myChart1" width="400" height="300"></canvas>
+            <script>
+                var ctx = document.getElementById('myChart1').getContext('2d');
+                var myChart1 = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: [{% for expense in expenses_t %} '{{ expense.item }}', {% endfor %}],
+                        datasets: [{
+                            label: 'Expenses',
+                            data: [{% for expense in expenses_t %} {{ expense.total_amount }}, {% endfor %}],
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+                });
+            </script>
+        </div>
+    </div>
+</div>
+{% endblock content %}
