@@ -8,7 +8,179 @@
                 {% csrf_token %}
                 <fieldset class="form-group">
                     <legend class="border-bottom mb-4">{{legend}}</legend>
-                    {{form|crispy}}
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                          {{ form.request_by|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          {{ form.item_one|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_one_quantity|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_one_unit_price|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_one_total_price|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          {{ form.item_two|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_two_quantity|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_two_unit_price|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_two_total_price|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          {{ form.item_three|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_three_quantity|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_three_unit_price|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_three_total_price|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          {{ form.item_three|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_three_quantity|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_three_unit_price|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_three_total_price|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          {{ form.item_four|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_four_quantity|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_four_unit_price|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_four_total_price|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          {{ form.item_five|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_five_quantity|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_five_unit_price|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_five_total_price|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          {{ form.item_six|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_six_quantity|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_six_unit_price|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_six_total_price|as_crispy_field }}
+                        </div>
+                      </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          {{ form.item_seven|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_seven_quantity|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_seven_unit_price|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_seven_total_price|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          {{ form.item_eight|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_eight_quantity|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_eight_unit_price|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_eight_total_price|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          {{ form.item_nine|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_nine_quantity|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_nine_unit_price|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_nine_total_price|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                          {{ form.item_ten|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_ten_quantity|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_ten_unit_price|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{ form.item_ten_total_price|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group col-md-4">
+                        {{ form.category|as_crispy_field }}
+                      </div>
+                      <div class="form-group col-md-4">
+                        {{ form.status|as_crispy_field }}
+                      </div>
+                      <div class="form-group col-md-4">
+                        {{ form.total_amount|as_crispy_field }}
+                      </div>
+                  </div>
+                    <div class="form-group">
+                      {{ form.description|as_crispy_field }}
+                    </div>
                 </fieldset>
                 <div class="form-group">
                     <button class="btn btn-outline-info" type="submit">{{button}}</button>

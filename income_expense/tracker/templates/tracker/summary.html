@@ -12,7 +12,7 @@
 <div class="row">
     <div class="col-sm-6">
         <marquee>
-            <h4 style="color: white;">This information contains the income and expense of {{user.profile.company}} for the month {{date|date:"F d, Y"}}.</h4>
+            <h4 style="color: white;">This information contains the incomes and expenses of {{user.profile.company}} for the month {{date|date:"F d, Y"}}.</h4>
         </marquee>
     </div>
     <div class="col-sm-6">
@@ -30,7 +30,7 @@
             <table class="table table-striped table-bordered table-dark table-striped-columns table-responsive-sm">
                 <thead class="thead-dark">
                 <tr>
-                    <th scope="col">Item</th>
+                    <th scope="col">Category</th>
                     <th scope="col">Quantity</th>
                     <th scope="col">Amount</th>
                     <th scope="col">Total Amount</th>
@@ -39,7 +39,7 @@
             <tbody>
                 {% for income in incomes %}
                 <tr>
-                    <td><a type="payroll" href="#">{{income.item}}</a></td>
+                    <td><a type="payroll" href="#">{{income.category}}</a></td>
                     <td style="text-align: center;">{{income.quantity}}</td>
                     <td>{{income.amount|floatformat:2|intcomma}}</td>
                     <td>{{income.total_amount|floatformat:2|intcomma}}</td>
@@ -78,7 +78,7 @@
             <table class="table table-striped table-bordered table-dark table-striped-columns table-responsive-sm">
                 <thead class="thead-dark">
                 <tr>
-                    <th scope="col">Item</th>
+                    <th scope="col">Category</th>
                     <th scope="col">Quantity</th>
                     <th scope="col">Amount</th>
                     <th scope="col">Total Amount</th>
@@ -87,7 +87,7 @@
             <tbody>
                 {% for expense in expenses %}
                 <tr>
-                    <td><a type="payroll" href="#">{{expense.item}}</a></td>
+                    <td><a type="payroll" href="#">{{expense.category}}</a></td>
                     <td style="text-align: center;">{{expense.quantity}}</td>
                     <td>{{expense.amount|floatformat:2|intcomma}}</td>
                     <td>{{expense.total_amount|floatformat:2|intcomma}}</td>

@@ -51,22 +51,23 @@ def incomes(request):
     page = request.GET.get('page', 1)
     paginator = Paginator(incomes, 10)
 
-    quantity_total = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Income"
-    ).aggregate(Sum('quantity')).get('quantity__sum')
-    amount_total = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Income"
-    ).aggregate(Sum('amount')).get('amount__sum')
+    # quantity_total = PaymentVoucher.objects.filter(
+    #     date__year=timezone.now().year, date__month=timezone.now().month,
+    #     prepared_by__profile__company=request.user.profile.company,
+    #     transaction_type = "Income"
+    # ).aggregate(Sum('quantity')).get('quantity__sum')
+    # amount_total = PaymentVoucher.objects.filter(
+    #     date__year=timezone.now().year, date__month=timezone.now().month,
+    #     prepared_by__profile__company=request.user.profile.company,
+    #     transaction_type = "Income"
+    # ).aggregate(Sum('amount')).get('amount__sum')
     total_amount_total = PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,
         transaction_type = "Income"
     ).aggregate(Sum('total_amount')).get('total_amount__sum')
-
+    quantity_total = 0
+    amount_total = 0
     try:
         paginator = paginator.page(page)
     except:
@@ -76,11 +77,21 @@ def incomes(request):
         'incomes': paginator, 'quantity_total': quantity_total, 'amount_total': amount_total, 'total_amount_total': total_amount_total
     })
 
-
 class AddIncome(LoginRequiredMixin, CreateView):
     model = PaymentVoucher
     template_name = "tracker/income_form.html"
-    fields = ['request_by', 'item', 'quantity', 'amount', 'total_amount', 'category', 'payment_method', 'description']
+    fields = ['request_by',
+	                'item_one', 'item_one_quantity', 'item_one_unit_price', 'item_one_total_price',
+	                'item_two', 'item_two_quantity', 'item_two_unit_price', 'item_two_total_price',
+	                'item_three', 'item_three_quantity', 'item_three_unit_price', 'item_three_total_price',
+	                'item_four', 'item_four_quantity', 'item_four_unit_price', 'item_four_total_price',
+	                'item_five', 'item_five_quantity', 'item_five_unit_price', 'item_five_total_price',
+	                'item_six', 'item_six_quantity', 'item_six_unit_price', 'item_six_total_price',
+	                'item_seven', 'item_seven_quantity', 'item_seven_unit_price', 'item_seven_total_price',
+	                'item_eight', 'item_eight_quantity', 'item_eight_unit_price', 'item_eight_total_price',
+	                'item_nine', 'item_nine_quantity', 'item_nine_unit_price', 'item_nine_total_price',
+	                'item_ten', 'item_ten_quantity', 'item_ten_unit_price', 'item_ten_total_price',
+	                'total_amount', 'category', 'payment_method', 'status', 'description']
 
     def form_valid(self, form):
         form.instance.prepared_by = self.request.user
@@ -103,6 +114,12 @@ class AddIncome(LoginRequiredMixin, CreateView):
         context['legend'] = 'Add Income'
         context['recent'] = 'Recent Incomes'
         return context
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        print(form)
+        # form.fields['agent'].queryset = User.objects.filter(profile__is_supervisor=True).exclude(id=self.request.user.id)
+        return form
 
 class UpdateIncome(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = PaymentVoucher
@@ -177,12 +194,12 @@ def summary(request):
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,
         transaction_type = "Expense"
-    ).aggregate(Sum('quantity')).get('quantity__sum')
+    )#.aggregate(Sum('quantity')).get('quantity__sum')
     expense_amount_total = PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,
         transaction_type = "Expense"
-    ).aggregate(Sum('amount')).get('amount__sum')
+    )#.aggregate(Sum('amount')).get('amount__sum')
     expense_total_amount_total = PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,
@@ -214,16 +231,16 @@ def summary(request):
     page = request.GET.get('page', 1)
     paginator1 = Paginator(incomes, 2)
 
-    income_quantity_total = PaymentVoucher.objects.filter(
+    income_quantity_total = len(PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,
         transaction_type = "Income"
-    ).aggregate(Sum('quantity')).get('quantity__sum')
+    ))#.aggregate(Sum('quantity')).get('quantity__sum')
     income_amount_total = PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,
         transaction_type = "Income"
-    ).aggregate(Sum('amount')).get('amount__sum')
+    )#.aggregate(Sum('amount')).get('amount__sum')
     income_total_amount_total = PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,

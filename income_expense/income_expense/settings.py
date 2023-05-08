@@ -21,10 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-u7$r9_ee2cwa9i)+#h8q73%qbbyz$!^t_48dt(#n_2h%@7a^la"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = str(os.environ.get("DEBUG")) == "1"
 
 ALLOWED_HOSTS = []
 
@@ -92,12 +92,11 @@ WSGI_APPLICATION = "income_expense.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'income_expense',
-        'USER': 'income_expense',
-        'PASSWORD': 'income_expense',
+        'NAME': os.environ.get('database_name'),
+        'USER': os.environ.get('database_username'),
+        'PASSWORD': os.environ.get('database_password'),
     }
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 

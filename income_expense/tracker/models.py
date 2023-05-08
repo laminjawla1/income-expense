@@ -28,11 +28,60 @@ class PaymentVoucher(models.Model):
         ("Access Bank", "Access Bank"),
         ("Trust Bank", "Trust Bank"),
     ], null=True, blank=True)
-    item = models.CharField(max_length=100)
+
+    item_one = models.CharField('Item 1', max_length=120, default='', blank=True, null=True)
+    item_one_quantity = models.IntegerField('Quantity', default=0, blank=True, null=True)
+    item_one_unit_price = models.FloatField('Unit Price (D)', default=0, blank=True, null=True)
+    item_one_total_price = models.FloatField('Entry Total (D)', default=0, blank=True, null=True)
+
+    item_two = models.CharField('Item 2', max_length=120, default='', blank=True, null=True)
+    item_two_quantity = models.IntegerField('Quantity', default=0, blank=True, null=True)
+    item_two_unit_price = models.FloatField('Unit Price (D)', default=0, blank=True, null=True)
+    item_two_total_price = models.FloatField('Entry Total (D)', default=0, blank=True, null=True)
+
+    item_three = models.CharField('Item 3', max_length=120, default='', blank=True, null=True)
+    item_three_quantity = models.IntegerField('Quantity', default=0, blank=True, null=True)
+    item_three_unit_price = models.FloatField('Unit Price (D)', default=0, blank=True, null=True)
+    item_three_total_price = models.FloatField('Entry Total (D)', default=0, blank=True, null=True)
+
+    item_four = models.CharField('Item 4', max_length=120, default='', blank=True, null=True)
+    item_four_quantity = models.IntegerField('Quantity', default=0, blank=True, null=True)
+    item_four_unit_price = models.FloatField('Unit Price (D)', default=0, blank=True, null=True)
+    item_four_total_price = models.FloatField('Entry Total (D)', default=0, blank=True, null=True)
+
+    item_five = models.CharField('Item 5', max_length=120, default='', blank=True, null=True)
+    item_five_quantity = models.IntegerField('Quantity', default=0, blank=True, null=True)
+    item_five_unit_price = models.FloatField('Unit Price (D)', default=0, blank=True, null=True)
+    item_five_total_price = models.FloatField('Entry Total (D)', default=0, blank=True, null=True)
+
+    item_six = models.CharField('Item 6', max_length=120, default='', blank=True, null=True)
+    item_six_quantity = models.IntegerField('Quantity', default=0, blank=True, null=True)
+    item_six_unit_price = models.FloatField('Unit Price (D)', default=0, blank=True, null=True)
+    item_six_total_price = models.FloatField('Entry Total (D)', default=0, blank=True, null=True)
+
+    item_seven = models.CharField('Item 7', max_length=120, default='', blank=True, null=True)
+    item_seven_quantity = models.IntegerField('Quantity', default=0, blank=True, null=True)
+    item_seven_unit_price = models.FloatField('Unit Price (D)', default=0, blank=True, null=True)
+    item_seven_total_price = models.FloatField('Entry Total (D)', default=0, blank=True, null=True)
+
+    item_eight = models.CharField('Item 8', max_length=120, default='', blank=True, null=True)
+    item_eight_quantity = models.IntegerField('Quantity', default=0, blank=True, null=True)
+    item_eight_unit_price = models.FloatField('Unit Price (D)', default=0, blank=True, null=True)
+    item_eight_total_price = models.FloatField('Entry Total (D)', default=0, blank=True, null=True)
+
+    item_nine = models.CharField('Item 9', max_length=120, default='', blank=True, null=True)
+    item_nine_quantity = models.IntegerField('Quantity', default=0, blank=True, null=True)
+    item_nine_unit_price = models.FloatField('Unit Price (D)', default=0, blank=True, null=True)
+    item_nine_total_price = models.FloatField('Entry Total (D)', default=0, blank=True, null=True)
+
+    item_ten = models.CharField('Item 10', max_length=120, default='', blank=True, null=True)
+    item_ten_quantity = models.IntegerField('Quantity', default=0, blank=True, null=True)
+    item_ten_unit_price = models.FloatField('Unit Price (D)', default=0, blank=True, null=True)
+    item_ten_total_price = models.FloatField('Entry Total (D)', default=0, blank=True, null=True)
+
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
-    amount = models.FloatField()
-    total_amount = models.FloatField()
+
+    total_amount = models.FloatField(default=0)
     description = models.TextField()
     status = models.CharField(max_length=50, choices=[
         ("Audit Level", "Audit Level"),
