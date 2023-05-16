@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = str(os.environ.get("DEBUG")) == "1"
+DEBUG = True #str(os.environ.get("DEBUG")) == "1"
 
 ALLOWED_HOSTS = []
 
@@ -149,7 +149,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4' 
 
-LOGIN_REDIRECT_URL = "index"
+LOGIN_REDIRECT_URL = "dashboard"
 
 LOGIN_URL = 'login'
 

@@ -9,7 +9,7 @@ class Profile(models.Model):
     company= models.CharField(max_length=100, choices=[
         ("Yonna Foreign Exchange Bureau", "Yonna Foreign Exchange Bureau"),
         ("Yonna Islamic Microfinance", "Yonna Islamic Microfinance"),
-        ("Yonna Enterpriseprise", "Yonna Enterpriseprise"),
+        ("Yonna Enterprise", "Yonna Enterprise"),
         ("Yonna Insurance", "Yonna Insurance")
     ])
     title = models.CharField(max_length=50, choices=[

@@ -1,19 +1,24 @@
 from django.shortcuts import render
-from .models import PaymentVoucher
+from .models import PaymentVoucher, Category
 from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
-from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Sum
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import CreateView, UpdateView
-from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+from django.http import HttpResponseRedirect, HttpResponse
+from django.urls import reverse
 from django.core.mail import send_mail
+from datetime import datetime
 from .utils import gmd
 import os
+import inflect
+from io import BytesIO
+from django.http import HttpResponse
+from django.template.loader import get_template
+from django.views import View
+from xhtml2pdf import pisa
 
 @login_required
 def dashboard(request):
@@ -31,175 +36,367 @@ def dashboard(request):
 
     return render(request, "tracker/dashboard.html",{
         'total_cfs': total_cfs, 'audit_level': audit_level, 'approved_cfs': approved_cfs, 'management': management,
-        'final_review': final_review, 'on_hold': on_hold
+        'final_review': final_review, 'on_hold': on_hold, 'current_page': 'dashboard'
     })
 
 @login_required
-def index(request):
-
-    return render(request, "tracker/dashboard.html",{
-    })
-
-
-@login_required
-def incomes(request):
-    incomes = PaymentVoucher.objects.filter(
+def transactions(request):
+    transactions = PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Income"
-    ).all()
+    ).all().order_by("-date")
+    if request.method == 'POST':
+        date = request.POST.get('date')
+        if date:
+            try:
+                date = date.split('-')
+            except:
+                messages.error(request, 'Invalid date format')
+                return HttpResponseRedirect(reverse('payrolls'))
+            try:
+                _date = datetime(int(date[0]), int(date[1]), int(date[2]))
+            except:
+                messages.error(request, 'Invalid date format')
+                return HttpResponseRedirect(reverse('payrolls'))
+            transactions = PaymentVoucher.objects.filter(
+                pv_id__icontains=request.POST['pv_id'],
+                prepared_by__username__icontains=request.POST['prepared_by'],
+                request_by__icontains=request.POST['request_by'],
+                status__icontains=request.POST['status'],
+                category__name__icontains=request.POST['category'],
+                prepared_by__profile__company=request.user.profile.company,
+                transaction_type__icontains = request.POST['transaction_type'], 
+                date__year=_date.year, date__month=_date.month, date__day=_date.day
+            )
+        else:
+            transactions = PaymentVoucher.objects.filter(
+                pv_id__icontains=request.POST['pv_id'],
+                prepared_by__username__icontains=request.POST['prepared_by'],
+                request_by__icontains=request.POST['request_by'],
+                status__icontains=request.POST['status'],
+                category__name__icontains=request.POST['category'],
+                prepared_by__profile__company=request.user.profile.company,
+                transaction_type__icontains = request.POST['transaction_type']
+            )
+        if not transactions:
+            messages.error(request, "No Entries Available")
+        else:
+            messages.success(request, "Result generated")
     page = request.GET.get('page', 1)
-    paginator = Paginator(incomes, 10)
+    paginator = Paginator(transactions, 10)
 
-    # quantity_total = PaymentVoucher.objects.filter(
-    #     date__year=timezone.now().year, date__month=timezone.now().month,
-    #     prepared_by__profile__company=request.user.profile.company,
-    #     transaction_type = "Income"
-    # ).aggregate(Sum('quantity')).get('quantity__sum')
-    # amount_total = PaymentVoucher.objects.filter(
-    #     date__year=timezone.now().year, date__month=timezone.now().month,
-    #     prepared_by__profile__company=request.user.profile.company,
-    #     transaction_type = "Income"
-    # ).aggregate(Sum('amount')).get('amount__sum')
-    total_amount_total = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Income"
-    ).aggregate(Sum('total_amount')).get('total_amount__sum')
-    quantity_total = 0
-    amount_total = 0
+    total_amount_total = transactions.aggregate(Sum('total_amount')).get('total_amount__sum')
+
+
     try:
         paginator = paginator.page(page)
     except:
         paginator = paginator.page(1)
 
-    return render(request, "tracker/income.html", {
-        'incomes': paginator, 'quantity_total': quantity_total, 'amount_total': amount_total, 'total_amount_total': total_amount_total
+    income_amount = 0
+    expense_amount = 0
+
+    income_amount = PaymentVoucher.objects.filter(
+        prepared_by__profile__company=request.user.profile.company,
+        transaction_type="Income", status="Approved",
+    ).aggregate(Sum('total_amount')).get('total_amount__sum')
+    expense_amount = PaymentVoucher.objects.filter(
+        prepared_by__profile__company=request.user.profile.company,
+        transaction_type="Expense", status="Approved",
+    ).aggregate(Sum('total_amount')).get('total_amount__sum')
+
+    if not income_amount:
+        income_amount = 0
+    if not expense_amount:
+        expense_amount = 0
+
+    profit = income_amount - expense_amount
+
+    return render(request, "tracker/transactions.html", {
+        'transactions': paginator, 'total_amount_total': total_amount_total, 'current_page': 'transactions',
+        'income_amount': income_amount, 'expense_amount': expense_amount, 'profit': profit
     })
 
-class AddIncome(LoginRequiredMixin, CreateView):
+class Transact(LoginRequiredMixin, CreateView):
     model = PaymentVoucher
-    template_name = "tracker/income_form.html"
-    fields = ['request_by',
-	                'item_one', 'item_one_quantity', 'item_one_unit_price', 'item_one_total_price',
-	                'item_two', 'item_two_quantity', 'item_two_unit_price', 'item_two_total_price',
-	                'item_three', 'item_three_quantity', 'item_three_unit_price', 'item_three_total_price',
-	                'item_four', 'item_four_quantity', 'item_four_unit_price', 'item_four_total_price',
-	                'item_five', 'item_five_quantity', 'item_five_unit_price', 'item_five_total_price',
-	                'item_six', 'item_six_quantity', 'item_six_unit_price', 'item_six_total_price',
-	                'item_seven', 'item_seven_quantity', 'item_seven_unit_price', 'item_seven_total_price',
-	                'item_eight', 'item_eight_quantity', 'item_eight_unit_price', 'item_eight_total_price',
-	                'item_nine', 'item_nine_quantity', 'item_nine_unit_price', 'item_nine_total_price',
-	                'item_ten', 'item_ten_quantity', 'item_ten_unit_price', 'item_ten_total_price',
-	                'total_amount', 'category', 'payment_method', 'status', 'description']
+    template_name = "tracker/transact_form.html"
+    fields = ['request_by', 'transaction_type',
+            'item_one', 'item_one_quantity', 'item_one_unit_price', 'item_one_total_price',
+            'item_two', 'item_two_quantity', 'item_two_unit_price', 'item_two_total_price',
+            'item_three', 'item_three_quantity', 'item_three_unit_price', 'item_three_total_price',
+            'item_four', 'item_four_quantity', 'item_four_unit_price', 'item_four_total_price',
+            'item_five', 'item_five_quantity', 'item_five_unit_price', 'item_five_total_price',
+            'item_six', 'item_six_quantity', 'item_six_unit_price', 'item_six_total_price',
+            'item_seven', 'item_seven_quantity', 'item_seven_unit_price', 'item_seven_total_price',
+            'item_eight', 'item_eight_quantity', 'item_eight_unit_price', 'item_eight_total_price',
+            'item_nine', 'item_nine_quantity', 'item_nine_unit_price', 'item_nine_total_price',
+            'item_ten', 'item_ten_quantity', 'item_ten_unit_price', 'item_ten_total_price',
+            'total_amount', 'category', 'payment_method', 'status', 'description']
 
     def form_valid(self, form):
+        if form.instance.status != "Audit Level":
+            messages.error(self.request, "Sorry: You can only change the status to Audit Level")
+            form
+            return HttpResponseRedirect(reverse("transact"))
+        
         form.instance.prepared_by = self.request.user
-        form.instance.transaction_type = "Income"
-        form.instance.status = "Audit Level"
-        form.instance.total_amount = form.instance.amount * form.instance.quantity
+
+        form.instance.total_amount = 0
+
+        if form.instance.item_one and form.instance.item_one_quantity and form.instance.item_one_unit_price:
+            form.instance.item_one_total_price = form.instance.item_one_quantity * form.instance.item_one_unit_price
+            form.instance.total_amount += form.instance.item_one_total_price
+
+        if form.instance.item_two and form.instance.item_two_quantity and form.instance.item_two_unit_price:
+            form.instance.item_two_total_price = form.instance.item_two_quantity * form.instance.item_two_unit_price
+            form.instance.total_amount += form.instance.item_two_total_price
+
+        if form.instance.item_three and form.instance.item_three_quantity and form.instance.item_three_unit_price:
+            form.instance.item_three_total_price = form.instance.item_three_quantity * form.instance.item_three_unit_price
+            form.instance.total_amount += form.instance.item_three_total_price
+
+        if form.instance.item_four and form.instance.item_four_quantity and form.instance.item_four_unit_price:
+            form.instance.item_four_total_price = form.instance.item_four_quantity * form.instance.item_four_unit_price
+            form.instance.total_amount += form.instance.item_four_total_price
+
+        if form.instance.item_five and form.instance.item_five_quantity and form.instance.item_five_unit_price:
+            form.instance.item_five_total_price = form.instance.item_five_quantity * form.instance.item_five_unit_price
+            form.instance.total_amount += form.instance.item_five_total_price
+
+        if form.instance.item_six and form.instance.item_six_quantity and form.instance.item_six_unit_price:
+            form.instance.item_six_total_price = form.instance.item_six_quantity * form.instance.item_six_unit_price
+            form.instance.total_amount += form.instance.item_six_total_price
+
+        if form.instance.item_seven and form.instance.item_seven_quantity and form.instance.item_seven_unit_price:
+            form.instance.item_seven_total_price = form.instance.item_seven_quantity * form.instance.item_seven_unit_price
+            form.instance.total_amount += form.instance.item_seven_total_price
+
+        if form.instance.item_eight and form.instance.item_eight_quantity and form.instance.item_eight_unit_price:
+            form.instance.item_eight_total_price = form.instance.item_eight_quantity * form.instance.item_eight_unit_price
+            form.instance.total_amount += form.instance.item_eight_total_price
+
+        if form.instance.item_nine and form.instance.item_nine_quantity and form.instance.item_nine_unit_price:
+            form.instance.item_nine_total_price = form.instance.item_nine_quantity * form.instance.item_nine_unit_price
+            form.instance.total_amount += form.instance.item_nine_total_price
+
+        if form.instance.item_ten and form.instance.item_ten_quantity and form.instance.item_ten_unit_price:
+            form.instance.item_ten_total_price = form.instance.item_ten_quantity * form.instance.item_ten_unit_price
+            form.instance.total_amount += form.instance.item_ten_total_price
+
         send_mail(
-            'New Income',
-            f'{self.request.user.first_name} {self.request.user.last_name} added {form.instance.quantity} item(s) worth {gmd(form.instance.total_amount)}.', 
+            f'New {form.instance.transaction_type}',
+            f'{self.request.user.first_name} {self.request.user.last_name} added an item(s) worth {gmd(form.instance.total_amount)}.', 
             'yonnatech.g@gmail.com',
             [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
             fail_silently=False,
         )
-        messages.success(self.request, "New income added successfully 😊")
+        messages.success(self.request, f"New {form.instance.transaction_type} added successfully 😊")
         return super().form_valid(form)
 
     def get_context_data(self, *args, **kwargs):
-        context = super(AddIncome, self).get_context_data(*args, **kwargs)
+        total_transactions = PaymentVoucher.objects.filter(
+            prepared_by__profile__company=self.request.user.profile.company,
+        ).count()
+        transactions = PaymentVoucher.objects.filter(
+            prepared_by__profile__company=self.request.user.profile.company,
+        ).order_by('-date')[:10]
+        context = super(Transact, self).get_context_data(*args, **kwargs)
         context['button'] = 'Add'
-        context['legend'] = 'Add Income'
-        context['recent'] = 'Recent Incomes'
+        context['legend'] = 'Add Transaction'
+        context['recent'] = 'Recent Transactions'
+        context['total'] = total_transactions
+        context['recents'] = transactions
+        context['current_page'] = 'transactions'
         return context
     
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        print(form)
-        # form.fields['agent'].queryset = User.objects.filter(profile__is_supervisor=True).exclude(id=self.request.user.id)
+        if self.request.user.profile.title == "Accountant":
+            form.fields['status'].choices = [("Accounts Desk", "Accounts Desk"), ("Audit Level", "Audit Level")]
         return form
-
-class UpdateIncome(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    
+class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = PaymentVoucher
-    template_name = "tracker/income_form.html"
-    fields = ['request_by', 'item', 'quantity', 'amount', 'total_amount', 'category', 'payment_method', 'description']
+    template_name = "tracker/transact_form.html"
+    fields = ['request_by', 'transaction_type',
+            'item_one', 'item_one_quantity', 'item_one_unit_price', 'item_one_total_price',
+            'item_two', 'item_two_quantity', 'item_two_unit_price', 'item_two_total_price',
+            'item_three', 'item_three_quantity', 'item_three_unit_price', 'item_three_total_price',
+            'item_four', 'item_four_quantity', 'item_four_unit_price', 'item_four_total_price',
+            'item_five', 'item_five_quantity', 'item_five_unit_price', 'item_five_total_price',
+            'item_six', 'item_six_quantity', 'item_six_unit_price', 'item_six_total_price',
+            'item_seven', 'item_seven_quantity', 'item_seven_unit_price', 'item_seven_total_price',
+            'item_eight', 'item_eight_quantity', 'item_eight_unit_price', 'item_eight_total_price',
+            'item_nine', 'item_nine_quantity', 'item_nine_unit_price', 'item_nine_total_price',
+            'item_ten', 'item_ten_quantity', 'item_ten_unit_price', 'item_ten_total_price',
+            'total_amount', 'category', 'payment_method', 'status', 'description']
 
     def form_valid(self, form):
+        if form.instance.status != "Audit Level":
+            messages.error(self.request, "Sorry: You can only change the status to Audit Level")
+            return HttpResponseRedirect(reverse("transact"))
+        
         form.instance.prepared_by = self.request.user
-        form.instance.transaction_type = "Income"
-        form.instance.status = "Audit Level"
-        form.instance.total_amount = form.instance.amount * form.instance.quantity
-        messages.success(self.request, "Income updated successfully.")
+
+        form.instance.total_amount = 0
+
+        if form.instance.item_one and form.instance.item_one_quantity and form.instance.item_one_unit_price:
+            form.instance.item_one_total_price = form.instance.item_one_quantity * form.instance.item_one_unit_price
+            form.instance.total_amount += form.instance.item_one_total_price
+
+        if form.instance.item_two and form.instance.item_two_quantity and form.instance.item_two_unit_price:
+            form.instance.item_two_total_price = form.instance.item_two_quantity * form.instance.item_two_unit_price
+            form.instance.total_amount += form.instance.item_two_total_price
+
+        if form.instance.item_three and form.instance.item_three_quantity and form.instance.item_three_unit_price:
+            form.instance.item_three_total_price = form.instance.item_three_quantity * form.instance.item_three_unit_price
+            form.instance.total_amount += form.instance.item_three_total_price
+
+        if form.instance.item_four and form.instance.item_four_quantity and form.instance.item_four_unit_price:
+            form.instance.item_four_total_price = form.instance.item_four_quantity * form.instance.item_four_unit_price
+            form.instance.total_amount += form.instance.item_four_total_price
+
+        if form.instance.item_five and form.instance.item_five_quantity and form.instance.item_five_unit_price:
+            form.instance.item_five_total_price = form.instance.item_five_quantity * form.instance.item_five_unit_price
+            form.instance.total_amount += form.instance.item_five_total_price
+
+        if form.instance.item_six and form.instance.item_six_quantity and form.instance.item_six_unit_price:
+            form.instance.item_six_total_price = form.instance.item_six_quantity * form.instance.item_six_unit_price
+            form.instance.total_amount += form.instance.item_six_total_price
+
+        if form.instance.item_seven and form.instance.item_seven_quantity and form.instance.item_seven_unit_price:
+            form.instance.item_seven_total_price = form.instance.item_seven_quantity * form.instance.item_seven_unit_price
+            form.instance.total_amount += form.instance.item_seven_total_price
+
+        if form.instance.item_eight and form.instance.item_eight_quantity and form.instance.item_eight_unit_price:
+            form.instance.item_eight_total_price = form.instance.item_eight_quantity * form.instance.item_eight_unit_price
+            form.instance.total_amount += form.instance.item_eight_total_price
+
+        if form.instance.item_nine and form.instance.item_nine_quantity and form.instance.item_nine_unit_price:
+            form.instance.item_nine_total_price = form.instance.item_nine_quantity * form.instance.item_nine_unit_price
+            form.instance.total_amount += form.instance.item_nine_total_price
+
+        if form.instance.item_ten and form.instance.item_ten_quantity and form.instance.item_ten_unit_price:
+            form.instance.item_ten_total_price = form.instance.item_ten_quantity * form.instance.item_ten_unit_price
+            form.instance.total_amount += form.instance.item_ten_total_price
+
+        messages.success(self.request, "Transaction updated successfully.")
         return super().form_valid(form)
     
     
     def test_func(self):
-        income = self.get_object()
-        return not income.status == "Approved"
+        transaction = self.get_object()
+        return not transaction.status == "Approved"
     
     def get_context_data(self, *args, **kwargs):
-        context = super(UpdateIncome, self).get_context_data(*args, **kwargs)
-        context['button'] = 'Update'
-        context['recent'] = 'Recent Incomes'
+        total_transactions = PaymentVoucher.objects.filter(
+            prepared_by__profile__company=self.request.user.profile.company,
+        ).count()
+        transactions = PaymentVoucher.objects.filter(
+            prepared_by__profile__company=self.request.user.profile.company,
+        ).order_by('-date')[:5]
+        context = super(UpdateTransact, self).get_context_data(*args, **kwargs)
+        context['button'] = 'Update Transaction'
+        context['legend'] = 'Update Transaction'
+        context['recent'] = 'Recent Transactions'
+        context['total'] = total_transactions
+        context['recents'] = transactions
+        context['current_page'] = 'transactions'
         return context
 
-@login_required
-def expenses(request):
-    expenses = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Expense"
-    ).all()
-    page = request.GET.get('page', 1)
-    paginator = Paginator(expenses, 10)
-
-    quantity_total = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Expense"
-    ).aggregate(Sum('quantity')).get('quantity__sum')
-    amount_total = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Expense"
-    ).aggregate(Sum('amount')).get('amount__sum')
-    total_amount_total = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Expense"
-    ).aggregate(Sum('total_amount')).get('total_amount__sum')
-
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
-
-    return render(request, "tracker/expense.html", {
-        'expenses': paginator, 'quantity_total': quantity_total, 'amount_total': amount_total, 'total_amount_total': total_amount_total
-    })
 
 @login_required
 def summary(request):
+    if request.method == 'POST':
+        date = request.POST['date']
+        if date:
+            try:
+                date = date.split('-')
+            except:
+                messages.error(request, 'Invalid date format')
+                return HttpResponseRedirect(reverse('summary'))
+            try:
+                _date = datetime(int(date[0]), int(date[1]), int(date[2]))
+            except:
+                messages.error(request, 'Invalid date format')
+                return HttpResponseRedirect(reverse('summary'))
+            
+            expenses = PaymentVoucher.objects.filter(
+                prepared_by__profile__company=request.user.profile.company,
+                transaction_type = "Expense",
+                date__year=_date.year, date__month=_date.month, date__day=_date.day,
+            ).all().order_by("-date")
+            page = request.GET.get('page', 1)
+            paginator = Paginator(expenses, 2)
+
+            expense_total_amount_total = PaymentVoucher.objects.filter(
+                prepared_by__profile__company=request.user.profile.company,
+                transaction_type = "Expense",
+                date__year=_date.year, date__month=_date.month, date__day=_date.day,
+            ).aggregate(Sum('total_amount')).get('total_amount__sum')
+
+            try:
+                paginator = paginator.page(page)
+            except:
+                paginator = paginator.page(1)
+
+            incomes = PaymentVoucher.objects.filter(
+                prepared_by__profile__company=request.user.profile.company,
+                transaction_type = "Income",
+                date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                ).all().order_by("-date")
+
+            incomes_t = PaymentVoucher.objects.filter(
+                prepared_by__profile__company=request.user.profile.company,
+                transaction_type = "Income",
+                date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                ).all()
+            expenses_t = PaymentVoucher.objects.filter(
+                prepared_by__profile__company=request.user.profile.company,
+                transaction_type = "Expense",
+                date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                ).all()
+                
+            page = request.GET.get('page', 1)
+            paginator1 = Paginator(incomes, 2)
+
+            income_total_amount_total = PaymentVoucher.objects.filter(
+                prepared_by__profile__company=request.user.profile.company,
+                transaction_type = "Income",
+                date__year=_date.year, date__month=_date.month, date__day=_date.day,
+            ).aggregate(Sum('total_amount')).get('total_amount__sum')
+
+            try:
+                paginator1 = paginator1.page(page)
+            except:
+                paginator1 = paginator1.page(1)
+
+            income_categories = Category.objects.filter(
+                paymentvoucher__transaction_type = "Income",
+                paymentvoucher__status = "Approved",
+                paymentvoucher__prepared_by__profile__company=request.user.profile.company,
+                paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month, paymentvoucher__date__day=_date.day,
+            ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
+            expense_categories = Category.objects.filter(
+                paymentvoucher__transaction_type = "Expense",
+                paymentvoucher__status = "Approved",
+                paymentvoucher__prepared_by__profile__company=request.user.profile.company,
+                paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month, paymentvoucher__date__day=_date.day,
+            ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
+
+            return render(request, "tracker/summary.html", {
+            'expenses': paginator, 'expense_total_amount_total': expense_total_amount_total, 'incomes': paginator1,
+            'income_total_amount_total': income_total_amount_total, 'incomes_t': incomes_t, 'income_categories': income_categories,
+            'expenses_t': expenses_t, 'date': timezone.now(), 'current_page': 'summary', 'expense_categories': expense_categories,
+    })
     expenses = PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,
         transaction_type = "Expense"
-    ).all()
+    ).all().order_by("-date")
     page = request.GET.get('page', 1)
     paginator = Paginator(expenses, 2)
 
-    expense_quantity_total = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Expense"
-    )#.aggregate(Sum('quantity')).get('quantity__sum')
-    expense_amount_total = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Expense"
-    )#.aggregate(Sum('amount')).get('amount__sum')
     expense_total_amount_total = PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,
@@ -215,7 +412,7 @@ def summary(request):
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,
         transaction_type = "Income"
-        ).all()
+        ).all().order_by("-date")
 
     incomes_t = PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
@@ -231,16 +428,6 @@ def summary(request):
     page = request.GET.get('page', 1)
     paginator1 = Paginator(incomes, 2)
 
-    income_quantity_total = len(PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Income"
-    ))#.aggregate(Sum('quantity')).get('quantity__sum')
-    income_amount_total = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
-        transaction_type = "Income"
-    )#.aggregate(Sum('amount')).get('amount__sum')
     income_total_amount_total = PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
         prepared_by__profile__company=request.user.profile.company,
@@ -252,61 +439,30 @@ def summary(request):
     except:
         paginator1 = paginator1.page(1)
 
+    income_categories = Category.objects.filter(
+        paymentvoucher__transaction_type = "Income",
+        paymentvoucher__status = "Approved",
+        paymentvoucher__prepared_by__profile__company=request.user.profile.company,
+    ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
+    expense_categories = Category.objects.filter(
+        paymentvoucher__transaction_type = "Expense",
+        paymentvoucher__status = "Approved",
+        paymentvoucher__prepared_by__profile__company=request.user.profile.company,
+    ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
+
     return render(request, "tracker/summary.html", {
-        'expenses': paginator, 'expense_quantity_total': expense_quantity_total, 'expense_amount_total': expense_amount_total, 'expense_total_amount_total': expense_total_amount_total, 'incomes': paginator1, 'income_quantity_total': income_quantity_total,
-        'income_amount_total': income_amount_total, 'income_total_amount_total': income_total_amount_total, 'incomes_t': incomes_t,
-        'expenses_t': expenses_t, 'date': timezone.now()
+        'expenses': paginator, 'expense_total_amount_total': expense_total_amount_total, 'incomes': paginator1,
+        'income_total_amount_total': income_total_amount_total, 'incomes_t': incomes_t, 'income_categories': income_categories,
+        'expenses_t': expenses_t, 'date': timezone.now(), 'current_page': 'summary', 'expense_categories': expense_categories,
     })
 
-
-class AddExpense(LoginRequiredMixin, CreateView):
-    model = PaymentVoucher
-    template_name = "tracker/income_form.html"
-    fields = ['request_by', 'item', 'quantity', 'amount', 'total_amount', 'category', 'payment_method', 'description']
-
-    def form_valid(self, form):
-        form.instance.prepared_by = self.request.user
-        form.instance.transaction_type = "Expense"
-        form.instance.status = "Audit Level"
-        form.instance.total_amount = form.instance.amount * form.instance.quantity
-        send_mail(
-            'New Expense',
-            f'{self.request.user.first_name} {self.request.user.last_name} added {form.instance.quantity} item(s) worth {gmd(form.instance.total_amount)}.', 
-            'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-            fail_silently=False,
-        )
-        messages.success(self.request, "New expense added successfully 😊")
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        context = super(AddExpense, self).get_context_data(*args, **kwargs)
-        context['button'] = 'Add'
-        context['legend'] = 'Add Expense'
-        context['recent'] = 'Recent Expenses'
-        return context
-
-class UpdateExpense(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    model = PaymentVoucher
-    template_name = "tracker/income_form.html"
-    fields = ['request_by', 'item', 'quantity', 'amount', 'total_amount', 'category', 'payment_method', 'description']
-
-    def form_valid(self, form):
-        form.instance.prepared_by = self.request.user
-        form.instance.transaction_type = "Expense"
-        form.instance.status = "Audit Level"
-        form.instance.total_amount = form.instance.amount * form.instance.quantity
-        messages.success(self.request, "Expense updated successfully.")
-        return super().form_valid(form)
-    
-    
-    def test_func(self):
-        expense = self.get_object()
-        return not expense.status == "Approved"
-    
-    def get_context_data(self, *args, **kwargs):
-        context = super(UpdateExpense, self).get_context_data(*args, **kwargs)
-        context['button'] = 'Update'
-        context['legend'] = 'Update Expense'
-        context['recent'] = 'Recent Expenses'
-        return context
+def render_pv(request, pv_id):
+    pv = PaymentVoucher.objects.filter(id=pv_id).first()
+    if not pv:
+        messages.error(request, 'No such payment voucher')
+        return HttpResponseRedirect(reverse('transactions'))
+    total_amount_in_words = inflect.engine()
+    total_amount_in_words = total_amount_in_words.number_to_words(int(pv.total_amount)).capitalize() + " dalasis"
+    return render(request, 'tracker/pv.html', {
+        'pv': pv, 'total_amount_in_words': total_amount_in_words, 'current_page': 'transactions'
+        })

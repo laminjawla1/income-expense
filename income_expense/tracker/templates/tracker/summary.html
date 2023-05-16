@@ -12,11 +12,11 @@
 <div class="row">
     <div class="col-sm-6">
         <marquee>
-            <h4 style="color: white;">This information contains the incomes and expenses of {{user.profile.company}} for the month {{date|date:"F d, Y"}}.</h4>
+            <h3 style="color: white; text-align: center;" class="fw-bold">This information contains the incomes and expenses of {{user.profile.company}} for the month {{date|date:"F d, Y"}}.</h3>
         </marquee>
     </div>
     <div class="col-sm-6">
-        <form action="#" method="post" class="d-flex" role="search">
+        <form method="post" class="d-flex" role="search">
           {% csrf_token %}
           <input class="form-control me-2" type="date" name="date">
           <button class="btn btn-success" type="submit">Filter</button>
@@ -31,8 +31,7 @@
                 <thead class="thead-dark">
                 <tr>
                     <th scope="col">Category</th>
-                    <th scope="col">Quantity</th>
-                    <th scope="col">Amount</th>
+                    <th scope="col">Payment_Voucher_id</th>
                     <th scope="col">Total Amount</th>
                 </tr>
             </thead>
@@ -40,15 +39,12 @@
                 {% for income in incomes %}
                 <tr>
                     <td><a type="payroll" href="#">{{income.category}}</a></td>
-                    <td style="text-align: center;">{{income.quantity}}</td>
-                    <td>{{income.amount|floatformat:2|intcomma}}</td>
+                    <td style="text-align: center;">{{income.pv_id}}</td>
                     <td>{{income.total_amount|floatformat:2|intcomma}}</td>
                 </tr>
                 {% endfor %}
                 <tr>
-                    <td scope="col" style="font-weight: bold; color: red;">TOTALS</td>
-                    <td style="text-align: center;" scope="col" style="font-weight: bold;">{{ income_quantity_total}}</td>
-                    <td scope="col" style="font-weight: bold;">{{ income_amount_total|floatformat:2|intcomma }}</td>
+                    <td scope="col" colspan="2" style="font-weight: bold; color: red;">TOTAL</td>
                     <td scope="col" style="font-weight: bold;">{{ income_total_amount_total|floatformat:2|intcomma }}</td>
                 </tr>
             </tbody>
@@ -79,8 +75,7 @@
                 <thead class="thead-dark">
                 <tr>
                     <th scope="col">Category</th>
-                    <th scope="col">Quantity</th>
-                    <th scope="col">Amount</th>
+                    <th scope="col">Payment_Voucher_id</th>
                     <th scope="col">Total Amount</th>
                 </tr>
             </thead>
@@ -88,15 +83,12 @@
                 {% for expense in expenses %}
                 <tr>
                     <td><a type="payroll" href="#">{{expense.category}}</a></td>
-                    <td style="text-align: center;">{{expense.quantity}}</td>
-                    <td>{{expense.amount|floatformat:2|intcomma}}</td>
+                    <td style="text-align: center;">{{expense.pv_id}}</td>
                     <td>{{expense.total_amount|floatformat:2|intcomma}}</td>
                 </tr>
                 {% endfor %}
                 <tr>
-                    <td scope="col" style="font-weight: bold; color: red;">TOTALS</td>
-                    <td style="text-align: center;" scope="col" style="font-weight: bold;">{{ expense_quantity_total }}</td>
-                    <td scope="col" style="font-weight: bold;">{{ expense_amount_total|floatformat:2|intcomma }}</td>
+                    <td scope="col" colspan="2" style="font-weight: bold; color: red;">TOTALS</td>
                     <td scope="col" style="font-weight: bold;">{{ expense_total_amount_total|floatformat:2|intcomma }}</td>
                 </tr>
             </tbody>
@@ -131,10 +123,10 @@
                 var myChart2 = new Chart(ctx, {
                     type: 'pie',
                     data: {
-                        labels: [{% for income in incomes_t %} '{{ income.item }}', {% endfor %}],
+                        labels: [{% for income in income_categories %} '{{ income.name }}', {% endfor %}],
                         datasets: [{
                             label: 'Incomes',
-                            data: [{% for income in incomes_t %} {{ income.total_amount }}, {% endfor %}],
+                            data: [{% for income in income_categories %} {{ income.total_amount }}, {% endfor %}],
                             backgroundColor: [
                                 'rgba(255, 99, 132, 1)',
                                 'rgba(54, 162, 235, 1)',
@@ -182,10 +174,10 @@
                 var myChart1 = new Chart(ctx, {
                     type: 'pie',
                     data: {
-                        labels: [{% for expense in expenses_t %} '{{ expense.item }}', {% endfor %}],
+                        labels: [{% for expense in expense_categories %} '{{ expense.name }}', {% endfor %}],
                         datasets: [{
                             label: 'Expenses',
-                            data: [{% for expense in expenses_t %} {{ expense.total_amount }}, {% endfor %}],
+                            data: [{% for expense in expense_categories %} {{ expense.total_amount }}, {% endfor %}],
                             backgroundColor: [
                                 'rgba(255, 99, 132, 1)',
                                 'rgba(54, 162, 235, 1)',
@@ -219,4 +211,133 @@
         </div>
     </div>
 </div>
+<!-- <div class="row">
+    <div class="col-dm-12">
+        <main class="main-container">
+                <div class="charts">
+                    <div class="charts-card">
+                            <h2 class="chart-title">Income and Expense</h2>
+                            <div id="area-chart"></div>
+                    </div>
+                </div>
+        </main>
+    </div>
+</div>
+<script>
+    var areaChartOptions = {
+    series: [{
+        name: "Incomes",
+        data: [{% for income in incomes %} {{ income.total_amount }}, {% endfor %}],
+    }, {
+        name: "Expenses",
+        data: [{% for expense in expenses %} {{ expense.total_amount }}, {% endfor %}],
+    }],
+    chart: {
+        type: "area",
+        background: "transparent",
+        height: 350,
+        stacked: false,
+        toolbar: {
+        show: false,
+        },
+    },
+    colors: ["#00ab57", "#d50000"],
+    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+    dataLabels: {
+        enabled: false,
+    },
+    fill: {
+        gradient: {
+        opacityFrom: 0.4,
+        opacityTo: 0.1,
+        shadeIntensity: 1,
+        stops: [0, 100],
+        type: "vertical",
+        },
+        type: "gradient",
+    },
+    grid: {
+        borderColor: "#55596e",
+        yaxis: {
+        lines: {
+            show: true,
+        },
+        },
+        xaxis: {
+        lines: {
+            show: true,
+        },
+        },
+    },
+    legend: {
+        labels: {
+        colors: "#f5f7ff",
+        },
+        show: true,
+        position: "top",
+    },
+    markers: {
+        size: 6,
+        strokeColors: "#1b2635",
+        strokeWidth: 3,
+    },
+    stroke: {
+        curve: "smooth",
+    },
+    xaxis: {
+        axisBorder: {
+        color: "#55596e",
+        show: true,
+        },
+        axisTicks: {
+        color: "#55596e",
+        show: true,
+        },
+        labels: {
+        offsetY: 5,
+        style: {
+            colors: "#f5f7ff",
+        },
+        },
+    },
+    yaxis: 
+    [
+        {
+        title: {
+            text: "Incomes",
+            style: {
+            color: "#f5f7ff",
+            },
+        },
+        labels: {
+            style: {
+            colors: ["#f5f7ff"],
+            },
+        },
+        },
+        {
+        opposite: true,
+        title: {
+            text: "Expenses",
+            style: {
+            color:  "#f5f7ff",
+            },
+        },
+        labels: {
+            style: {
+            colors: ["#f5f7ff"],
+            },
+        },
+        },
+    ],
+    tooltip: {
+        shared: true,
+        intersect: false,
+        theme: "dark",
+    }
+    };
+
+    var areaChart = new ApexCharts(document.querySelector("#area-chart"), areaChartOptions);
+    areaChart.render();
+</script> -->
 {% endblock content %}

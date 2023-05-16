@@ -22,5 +22,6 @@ def profile(request):
 
     return render(request, 'accounts/profile.html', {
         'user_form': user_form,
-        'profile_form': profile_form
+        'profile_form': profile_form,
+        'current_page': 'profile'
     })

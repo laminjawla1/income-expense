@@ -1,10 +1,12 @@
 {% extends 'tracker/layout.html' %}
 {% load crispy_forms_tags %}
+{% load humanize %}
+{% load static %}
 {% block content %}
 <div class="row">
     <div class="col-sm-8">
         <div class="content-section">
-            <form method="post">
+            <form method="post" class="myForm">
                 {% csrf_token %}
                 <fieldset class="form-group">
                     <legend class="border-bottom mb-4">{{legend}}</legend>
@@ -14,7 +16,12 @@
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-12">
+                          {{ form.transaction_type|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
                           {{ form.item_one|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-2">
@@ -23,12 +30,12 @@
                         <div class="form-group col-md-2">
                           {{ form.item_one_unit_price|as_crispy_field }}
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                           {{ form.item_one_total_price|as_crispy_field }}
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                           {{ form.item_two|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-2">
@@ -37,12 +44,12 @@
                         <div class="form-group col-md-2">
                           {{ form.item_two_unit_price|as_crispy_field }}
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                           {{ form.item_two_total_price|as_crispy_field }}
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                           {{ form.item_three|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-2">
@@ -51,26 +58,12 @@
                         <div class="form-group col-md-2">
                           {{ form.item_three_unit_price|as_crispy_field }}
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                           {{ form.item_three_total_price|as_crispy_field }}
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group col-md-6">
-                          {{ form.item_three|as_crispy_field }}
-                        </div>
-                        <div class="form-group col-md-2">
-                          {{ form.item_three_quantity|as_crispy_field }}
-                        </div>
-                        <div class="form-group col-md-2">
-                          {{ form.item_three_unit_price|as_crispy_field }}
-                        </div>
-                        <div class="form-group col-md-2">
-                          {{ form.item_three_total_price|as_crispy_field }}
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                           {{ form.item_four|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-2">
@@ -79,12 +72,12 @@
                         <div class="form-group col-md-2">
                           {{ form.item_four_unit_price|as_crispy_field }}
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                           {{ form.item_four_total_price|as_crispy_field }}
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                           {{ form.item_five|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-2">
@@ -93,12 +86,12 @@
                         <div class="form-group col-md-2">
                           {{ form.item_five_unit_price|as_crispy_field }}
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                           {{ form.item_five_total_price|as_crispy_field }}
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                           {{ form.item_six|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-2">
@@ -107,12 +100,12 @@
                         <div class="form-group col-md-2">
                           {{ form.item_six_unit_price|as_crispy_field }}
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                           {{ form.item_six_total_price|as_crispy_field }}
                         </div>
                       </div>
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                           {{ form.item_seven|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-2">
@@ -121,12 +114,12 @@
                         <div class="form-group col-md-2">
                           {{ form.item_seven_unit_price|as_crispy_field }}
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                           {{ form.item_seven_total_price|as_crispy_field }}
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                           {{ form.item_eight|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-2">
@@ -135,12 +128,12 @@
                         <div class="form-group col-md-2">
                           {{ form.item_eight_unit_price|as_crispy_field }}
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                           {{ form.item_eight_total_price|as_crispy_field }}
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                           {{ form.item_nine|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-2">
@@ -149,12 +142,12 @@
                         <div class="form-group col-md-2">
                           {{ form.item_nine_unit_price|as_crispy_field }}
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                           {{ form.item_nine_total_price|as_crispy_field }}
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                           {{ form.item_ten|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-2">
@@ -163,7 +156,7 @@
                         <div class="form-group col-md-2">
                           {{ form.item_ten_unit_price|as_crispy_field }}
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                           {{ form.item_ten_total_price|as_crispy_field }}
                         </div>
                     </div>
@@ -178,20 +171,69 @@
                         {{ form.total_amount|as_crispy_field }}
                       </div>
                   </div>
-                    <div class="form-group">
+                  <div class="form-row">
+                    <div class="form-group col-md-12">
                       {{ form.description|as_crispy_field }}
                     </div>
+                  </div>
                 </fieldset>
-                <div class="form-group">
-                    <button class="btn btn-outline-info" type="submit">{{button}}</button>
+                <div class="form-row">
+                  <div class="form-group col-md-12">
+                    <button id='more-line' type="button" class="btn btn-primary btn-block btn-sm">Show Or Hide More Fields</button>
+                  </div>
                 </div>
+                  <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <button class="btn btn-outline-success" type="submit">{{button}}</button>
+                    </div>
+                    <div class="form-group col-md-6 d-md-flex justify-content-md-end">
+                        <a href="{% url 'transactions' %}" class="btn btn-outline-danger ">Cancel</a>
+                    </div>
+                </div>    
             </form>
         </div>
     </div>
-    <div class="col-sm-4">
-        <div class="content-section">
-            <h2>{{recent}}</h2>
-        </div>
+    <div class="col-md-4">
+      <span class="text-muted">{{recent}}</span>
+      <span class="badge badge-secondary badge-pill">{{total}}</span>
+      {% for recent in recents %}
+        <ul class="list-group mb-3">
+            <li class="list-group-item  justify-content-between lh-condensed">
+              <div class="row">
+                <div class="col-md-6">
+                    <b class="my-0 text-nowrap">{{recent.request_by}}</b>
+                </div>
+                <div class="col-md-6">
+                  <b class="text-muted">D{{recent.total_amount|floatformat:2|intcomma}}</b>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  {% if recent.transaction_type == "Income" %}
+                    <small class="my-0 fw-bold text-success">{{recent.transaction_type}}</small>
+                  {% else %}
+                    <small class="my-0 fw-bold text-danger">{{recent.transaction_type}}</small>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  <small class="text-muted text-nowrap"><a href="{% url 'render_pv' recent.id %}">{{recent.pv_id}}</a></small>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <small class="text-muted text-nowrap">{{recent.date}}</small>
+                </div>
+                <div class="col-md-6">
+                  {% if recent.status == "Approved" %}
+                      <img src="{% static 'tracker/images/tick.png' %}" width='13' height='13' class="rounded-circle mx-auto mt-2 d-block">
+                    {% else %}
+                      <img src="{% static 'tracker/images/untick.png' %}" width='13' height='13' class="rounded-circle mx-auto mt-2 d-block">
+                    {% endif %}
+                </div>
+              </div>
+            </li>
+        </ul>
+      {% endfor %}
     </div>
 </div>
 {% endblock content%}

@@ -1,6 +1,8 @@
 {% extends "tracker/layout.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
+<div class="row">
+  <div class="col-md-12">
     <div class="content-section">
       <div class="media">
         <img class="rounded-circle account-img" src="{{ user.profile.image.url }}">
@@ -21,4 +23,6 @@
           </div>
       </form>
     </div>
+  </div>
+</div>
 {% endblock content %}
