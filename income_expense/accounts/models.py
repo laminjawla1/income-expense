@@ -17,6 +17,7 @@ class Profile(models.Model):
         ("Accountant", "Accountant"),
         ("Auditor", "Auditor"),
         ("Manager", "Manager"),
+        ("CEO", "CEO"),
     ])
 
     def __str__(self) -> str:

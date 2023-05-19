@@ -1,0 +1,70 @@
+{% extends "tracker/layout.html" %}
+{% load humanize %}
+{% load static %}
+{% block content %}
+<style>
+  td {
+    text-align: center;
+  }
+</style>
+<div class="row">
+  {% if transactions %}
+  <h1 style="color: white;" class="text-center">New Transactions</h1>
+  <div class="col-md-12">
+    <table class="table table-striped table-bordered table-dark table-responsive-lg">
+        <thead class="thead-dark">
+        <tr>
+          <th scope="col">Payment_Voucher_id</th>
+          <th scope="col">Prepared_By</th>
+          <th scope="col">Request_By</th>
+          <th scope="col">Category</th>
+          <th scope="col">Transaction_Type</th>
+          <th scope="col">status</th>
+          <th scope="col">Date</th>
+          <th scope="col">Total Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for transaction in transactions %}
+        <tr>
+            <td><a class="transaction_id" href="{% url 'render_pv' transaction.id %}">{{transaction.pv_id}}</a></td>
+            <td>{{transaction.prepared_by.first_name}} {{transaction.prepared_by.last_name}}</td>
+            {% if transaction.approved %}
+              <td>{{transaction.request_by}}</td>
+            {% else %}
+              <td>{{transaction.request_by}}</td>
+            {% endif %}
+            <td>{{transaction.category}}</td>
+            <td>{{transaction.transaction_type}}</td>
+            {% if transaction.status == "Approved" %}
+                <td style="text-align: center;"><img src="{% static 'tracker/images/tick.png' %}" width='14' height='14' class="rounded-circle"></td>
+            {% else %}
+            <td>{{transaction.status}}</td>
+            {% endif %}
+            <td>{{transaction.date}}</td>
+            <td>D{{transaction.total_amount|floatformat:2|intcomma}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+    {% if transactions.has_previous %}
+    <a class="btn btn-outline-info mb-4" href="{% url 'all_transactions' %}?page=1">First</a>
+    <a class="btn btn-outline-info mb-4" href="{% url 'all_transactions' %}?page={{ transactions.previous_page_number }}">Previous</a>
+    {% endif %}
+    
+    {% for num in transactions.paginator.page_range %}
+    {% if transactions.number == num %}
+      <a class="btn btn-info mb-4" href="{% url 'all_transactions' %}?page={{ num }}">{{ num }}</a>
+    {% elif num > transactions.number|add:'-3' and num < transactions.number|add:'3' %}
+      <a class="btn btn-outline-info mb-4" href="{% url 'all_transactions' %}?page={{ num }}">{{ num }}</a>
+    {% endif %}
+    {% endfor %}
+    
+    {% if transactions.has_next %}
+    <a class="btn btn-outline-info mb-4" href="{% url 'all_transactions' %}?page={{ transactions.next_page_number }}">Next</a>
+    <a class="btn btn-outline-info mb-4" href="{% url 'all_transactions' %}?page={{ transactions.paginator.num_pages }}">Last</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock content %}

@@ -53,13 +53,15 @@
 {% if user.is_authenticated %}
     <header class="site-header col-md-12">
         <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
-            {% if user.is_superuser %}
+            {% if user.is_staff %}
             <div class="mymenu-bar">
                 <br>
                 <h3>Administration</h3>
-                <a href="#"><div class="btn btn-primary mybutton">Review New Transactions</div></a>
+                <a href="{% url 'new_transactions' %}"><div class="btn btn-primary mybutton">Review New Transactions</div></a>
                 <br><br>
-                <a href="#"><div class="btn btn-primary mybutton">Company Dashboard</div></a>
+                <a href="{% url 'all_transactions' %}"><div class="btn btn-primary mybutton">All Transactions</div></a>
+                <br><br>
+                <a href="{% url 'company_dashboard' %}"><div class="btn btn-primary mybutton">Company Dashboard</div></a>
                 <br><br>
                 <a href="#"><div class="btn btn-primary mybutton">Company Leaderboard</div></a>
               </div>

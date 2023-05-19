@@ -21,6 +21,8 @@ class PaymentVoucher(models.Model):
     prepared_by = models.ForeignKey(User, on_delete=models.CASCADE)
     approved_by = models.ForeignKey(User, on_delete=models.CASCADE, default="", blank=True, null=True, related_name="approved_by")
     reviewed_by = models.ForeignKey(User, on_delete=models.CASCADE, default="", blank=True, null=True, related_name="reviewed_by")
+    verified_by = models.ForeignKey(User, on_delete=models.CASCADE, default="", blank=True, null=True, related_name="verified_by")
+    approved = models.BooleanField(default=False)
     request_by = models.CharField(max_length=50, blank=True, null=True)
     payee = models.CharField(max_length=50, null=True, blank=True)
     cheque_number = models.CharField(max_length=50, null=True, blank=True)

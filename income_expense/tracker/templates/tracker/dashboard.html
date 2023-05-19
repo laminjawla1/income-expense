@@ -1,56 +1,103 @@
 {% extends "tracker/layout.html" %}
+{% load humanize %}
+{% load static %}
 {% block content %}
     <!-- Main -->
-    <main class="main-container">
-      <div class="main-cards">
-        <div class="card">
-            <div class="card-inner">
-              <h3>Total CFS</h3>
-              <span class="material-icons-outlined">format_align_justify</span>
-            </div>
-            <h1>{{total_cfs}}</h1>
-        </div>
-        <div class="card">
-            <div class="card-inner">
-              <h3>Audit Level</h3>
-              <span class="material-icons-outlined">pending</span>
-            </div>
-            <h1>{{audit_level}}</h1>
-        </div>
-
-        <div class="card">
-            <div class="card-inner">
-              <h3>Approved</h3>
-              <span class="material-icons-outlined">check_circle</span>
-            </div>
-            <h1>{{approved_cfs}}</h1>
-        </div>
-      </div>
-
-      <div class="main-cards">
-          <div class="card">
-              <div class="card-inner">
-                  <h3>Management</h3>
-                  <span class="material-icons-outlined">pending</span>
-              </div>
-              <h1>{{management}}</h1>
-          </div>
-
-          <div class="card">
+    <div class="row">
+      <div class="col-md-9 mb-3">
+        <main class="main-container">
+          <div class="main-cards">
+            <div class="card">
                 <div class="card-inner">
-                  <h3>Final Review</h3>
-                  <span class="material-icons-outlined">pending</span>
-              </div>
-              <h1>{{final_review}}</h1>
-          </div>
-
-          <div class="fired">
-                <div class="card-inner">
-                  <h3>On Hold</h3>
-                  <span class="material-icons-outlined">pause</span>
+                  <h3>Total CFS</h3>
+                  <span class="material-icons-outlined">format_align_justify</span>
                 </div>
-                <h1>{{on_hold}}</h1>
+                <h1>{{total_cfs}}</h1>
+            </div>
+            <div class="card">
+                <div class="card-inner">
+                  <h3>Audit Level</h3>
+                  <span class="material-icons-outlined">pending</span>
+                </div>
+                <h1>{{audit_level}}</h1>
+            </div>
+    
+            <div class="card">
+                <div class="card-inner">
+                  <h3>Approved</h3>
+                  <span class="material-icons-outlined">check_circle</span>
+                </div>
+                <h1>{{approved_cfs}}</h1>
+            </div>
           </div>
+    
+          <div class="main-cards">
+              <div class="card">
+                  <div class="card-inner">
+                      <h3>Mgmt</h3>
+                      <span class="material-icons-outlined">pending</span>
+                  </div>
+                  <h1>{{management}}</h1>
+              </div>
+    
+              <div class="card">
+                    <div class="card-inner">
+                      <h3>Final Review</h3>
+                      <span class="material-icons-outlined">pending</span>
+                  </div>
+                  <h1>{{final_review}}</h1>
+              </div>
+    
+              <div class="fired">
+                    <div class="card-inner">
+                      <h3>On Hold</h3>
+                      <span class="material-icons-outlined">pause</span>
+                    </div>
+                    <h1>{{on_hold}}</h1>
+              </div>
+          </div>
+        </main>
       </div>
-    </main>
+      <div class="col-md-3 mb-5">
+        <span class="text-white mt-2">Top 3 Transactions</span>
+        {% for recent in recents %}
+          <ul class="list-group mb-3">
+              <li class="list-group-item  justify-content-between lh-condensed">
+                <div class="row">
+                  <div class="col-md-6">
+                      <b class="my-0 text-nowrap">{{recent.request_by}}</b>
+                  </div>
+                  <div class="col-md-6">
+                    <b class="text-muted">D{{recent.total_amount|floatformat:2|intcomma}}</b>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    {% if recent.transaction_type == "Income" %}
+                      <small class="my-0 fw-bold text-success">{{recent.transaction_type}}</small>
+                    {% else %}
+                      <small class="my-0 fw-bold text-danger">{{recent.transaction_type}}</small>
+                    {% endif %}
+                  </div>
+                  <div class="col-md-6 overflow-hidden">
+                    <small class="text-muted overflow-hidden"><a href="{% url 'render_pv' recent.id %}">{{recent.pv_id}}</a></small>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <small class="text-muted text-hidden">{{recent.date}}</small>
+                  </div>
+                  <div class="col-md-6">
+                    {% if recent.approved %}
+                        <img src="{% static 'tracker/images/tick.png' %}" width='13' height='13' class="rounded-circle mx-auto mt-2 d-block">
+                      {% else %}
+                        <img src="{% static 'tracker/images/untick.png' %}" width='13' height='13' class="rounded-circle mx-auto mt-2 d-block">
+                      {% endif %}
+                  </div>
+                </div>
+              </li>
+          </ul>
+        {% endfor %}
+      </div>
+    </div>
 {% endblock content %}

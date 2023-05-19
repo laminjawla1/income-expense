@@ -18,7 +18,7 @@
         {% elif user.profile.company == "Yonna Enterprise" %}
             <img src="{% static 'tracker/images/enterprise.jpeg' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
         {% endif %}
-        <div class="container mt-1 mb-5" style="background-color: white;">
+        <div class="container mt-1 mb-1" style="background-color: white;">
             <div class="row">
                 <div class="col-md-12">
                     {% if user.profile.company == "Yonna Foreign Exchange Bureau" %}
@@ -94,7 +94,7 @@
                                 <td>D{{pv.item_one_unit_price|floatformat:2|intcomma}}</td>
                                 <td>D{{pv.item_one_total_price|floatformat:2|intcomma}}</td>
                             </tr>
-                            {% if item_two %}
+                            {% if pv.item_two %}
                                 <tr>
                                     <td>{{pv.item_two}}</td>
                                     <td>{{pv.item_two_quantity}}</td>
@@ -102,7 +102,7 @@
                                     <td>D{{pv.item_two_total_price|floatformat:2|intcomma}}</td>
                                 </tr>
                             {% endif %}
-                            {% if item_three %}
+                            {% if pv.item_three %}
                                 <tr>
                                     <td>{{pv.item_three}}</td>
                                     <td>{{pv.item_three_quantity}}</td>
@@ -110,7 +110,7 @@
                                     <td>D{{pv.item_three_total_price|floatformat:2|intcomma}}</td>
                                 </tr>
                             {% endif %}
-                            {% if item_four %}
+                            {% if pv.item_four %}
                                 <tr>
                                     <td>{{pv.item_four}}</td>
                                     <td>{{pv.item_four_quantity}}</td>
@@ -148,12 +148,11 @@
                         </div>
                     </div>
                     <div class="row mt-3">
-                        <!-- <div class="col-md-6"><span class="fw-bold bg-dark" style="color: rgb(255, 255, 255); font-size: 23px;"></span></div> -->
                         <div class="border col-md-4">
-                            <div class="d-flex flex-column text-center"><span><b>TOTAL AMOUNT</b></span><span>D{{pv.total_amount|floatformat:2|intcomma}}</span></div>
+                            <div class="d-flex flex-column text-center"><span><b>TOTAL AMOUNT IN FIGURES</b></span><span><em>D{{pv.total_amount|floatformat:2|intcomma}}</em></span></div>
                         </div>
                         <div class="border col-md-8">
-                            <div class="d-flex flex-column text-center"><span><b>TOTAL AMOUNT IN WORDS</b></span><span>{{total_amount_in_words}}</span></div>
+                            <div class="d-flex flex-column text-center"><span><b>TOTAL AMOUNT IN WORDS</b></span><span><em>{{total_amount_in_words}}</em></span></div>
                         </div>
                     </div>
                     <div class="row mt-3">
@@ -162,45 +161,54 @@
                         </div>
                     </div>
                     <div class="row mt-2">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div> <span class="fw-bolder"><u>Request By</u></span></div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div> <span class="fw-bolder"><u>Prepared By</u></span></div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div> <span class="fw-bolder"><u>Reviewed By</u></span></div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <div> <span class="fw-bolder"><u>Verified By</u></span></div>
+                        </div>
+                        <div class="col-md-4">
                             <div> <span class="fw-bolder"><u>Approved By</u></span></div>
                         </div>
                     </div>
                     <div class="row mt-2">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div> <span class="fw-bolder">{{pv.request_by}}</span></div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div> <span class="fw-bolder">{{pv.prepared_by.first_name}} {{pv.prepared_by.last_name}}</span></div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div> <span class="fw-bolder">{{pv.reviewed_by.first_name}} {{pv.reviewed_by.last_name}}</span></div>
                         </div>
-                        <div class="col-md-3">
-                            <div> <span class="fw-bolder">{{pv.approved_by}}</span></div>
+                        <div class="col-md-2">
+                            <div> <span class="fw-bolder">{{pv.verified_by.first_name}} {{pv.verified_by.last_name}}</span></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div> <span class="fw-bolder">{{pv.approved_by.first_name}} {{pv.approved_by.last_name}}</span></div>
                         </div>
                     </div>
                     <div class="row mt-2">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div> <span>.........................................</span></div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div> <span>.........................................</span></div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div> <span>.........................................</span></div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div> <span>.........................................</span></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div> <span>......................................................................................</span></div>
                         </div>
                     </div>
                     <br>
@@ -209,4 +217,46 @@
         </div>
     </div>
 </div>
+{% if user.profile.title != "Accountant" and not pv.approved %}
+<div class="row">
+    <div class="col-md-12">
+      <form method="post" class="d-flex" role="search">
+        {% csrf_token %}
+        <div class="form-row">
+            <input type="hidden" name="pv_id" value="{{pv.id}}">
+            <div class="mb-3 form-group col-md-6">
+                <textarea name="email_message" placeholder="Note to the subordinate incase the transaction isn't endorsed (optional)" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+            </div>
+            <div class="form-group col-md-4">
+                {% if user.profile.title == "Auditor" %}
+                    <select name="status" class="form-select" aria-label="Default select example" required>
+                        <option selected disabled>Change Status</option>
+                        <option value="Accounts Desk">Accounts Desk</option>
+                        <option value="Management Level">Management Level</option>
+                    </select>
+                {% elif user.profile.title == "Manager" or user.profile.title == "CEO" and user.is_staff %}
+                    <select name="status" class="form-select" aria-label="Default select example" required>
+                        <option selected disabled>Change Status</option>
+                        <option value="Audit Level">Audit Level</option>
+                        <option value="Final Review">Final Review</option>
+                        <option value="Approved">Approved</option>
+                        <option value="On Hold">On Hold</option>
+                    </select>
+                {% else %}
+                    <select name="status" class="form-select" aria-label="Default select example" required>
+                        <option selected disabled>Change Status</option>
+                        <option value="Audit Level">Audit Level</option>
+                        <option value="Final Review">Final Review</option>
+                        <option value="On Hold">On Hold</option>
+                    </select>
+                {% endif %}
+            </div>
+            <div class="form-group col-md-2">
+              <button class="btn btn-success text-align-center" type="submit">Proceed</button>
+            </div>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endif %}
 {% endblock content %}

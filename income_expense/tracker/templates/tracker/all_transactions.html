@@ -12,11 +12,16 @@
     <form method="post" class="d-flex" role="search">
       {% csrf_token %}
       <div class="form-row">
+          <div class="form-group col-md-2">
+            <select name="company" class="form-select" aria-label="Default select example">
+                <option selected disabled>Company</option>
+                {% for comapany in comapanies %}
+                    <option value="{{comapany}}">{{comapany}}</option>
+                {% endfor %}
+            </select>
+          </div>
           <div class="form-group col-md-1">
               <input name="pv_id" id="pv_id" class="form-control me-2" type="search" placeholder="PV ID" aria-label="Search">
-          </div>
-          <div class="form-group col-md-2">
-              <input name="prepared_by" id="prepared_by" class="form-control me-2" type="search" placeholder="Prepared By" aria-label="Search">
           </div>
           <div class="form-group col-md-2">
               <input name="request_by" id="request_by" class="form-control me-2" type="search" placeholder="Request By" aria-label="Search">
@@ -35,16 +40,13 @@
           </div>
           <div class="form-group col-md-2 d-md-flex justify-content-md-end">
             <button class="btn btn-success text-align-center" type="submit">Filter</button>
-            &nbsp;<a href="{% url 'transactions' %}" class="btn btn-danger text-align-center">Clear</a>
+            &nbsp;<a href="{% url 'all_transactions' %}" class="btn btn-danger text-align-center">Clear</a>
           </div>
       </div>
     </form>
   </div>
 </div>
 <div class="row">
-  <div class="col-md-12 mb-1">
-    <small><a class="btn btn-primary btn-block btn-sm" href="{% url 'transact' %}">Transact</a></small>
-  </div>
   {% if transactions %}
   <div class="col-md-12">
     <table class="table table-striped table-bordered table-dark table-responsive-lg">
@@ -65,7 +67,7 @@
         <tr>
             <td><a class="transaction_id" href="{% url 'render_pv' transaction.id %}">{{transaction.pv_id}}</a></td>
             <td>{{transaction.prepared_by.first_name}} {{transaction.prepared_by.last_name}}</td>
-            {% if not transaction.approved %}
+            {% if transaction.approved %}
               <td><a class="transaction_id" href="{% url 'update_transaction' transaction.id %}">{{transaction.request_by}}</a></td>
             {% else %}
               <td>{{transaction.request_by}}</td>
@@ -83,7 +85,7 @@
         {% endfor %}
     </tbody>
     </table>
-    <h4 style="text-align: center; color: aliceblue;" class="bg-dark">{{  user.profile.company }} Common Financial Statement</h4>
+    <h4 style="text-align: center; color: aliceblue;" class="bg-dark">{{domain}} Common Financial Statement</h4>
     <table class="table table-striped table-bordered table-success table-responsive-lg">
         <thead class="thead-dark">
         <tr>
@@ -111,21 +113,21 @@
     </tbody>
     </table>
     {% if transactions.has_previous %}
-    <a class="btn btn-outline-info mb-4" href="{% url 'transactions' %}?page=1">First</a>
-    <a class="btn btn-outline-info mb-4" href="{% url 'transactions' %}?page={{ transactions.previous_page_number }}">Previous</a>
+    <a class="btn btn-outline-info mb-4" href="{% url 'all_transactions' %}?page=1">First</a>
+    <a class="btn btn-outline-info mb-4" href="{% url 'all_transactions' %}?page={{ transactions.previous_page_number }}">Previous</a>
     {% endif %}
     
     {% for num in transactions.paginator.page_range %}
     {% if transactions.number == num %}
-      <a class="btn btn-info mb-4" href="{% url 'transactions' %}?page={{ num }}">{{ num }}</a>
+      <a class="btn btn-info mb-4" href="{% url 'all_transactions' %}?page={{ num }}">{{ num }}</a>
     {% elif num > transactions.number|add:'-3' and num < transactions.number|add:'3' %}
-      <a class="btn btn-outline-info mb-4" href="{% url 'transactions' %}?page={{ num }}">{{ num }}</a>
+      <a class="btn btn-outline-info mb-4" href="{% url 'all_transactions' %}?page={{ num }}">{{ num }}</a>
     {% endif %}
     {% endfor %}
     
     {% if transactions.has_next %}
-    <a class="btn btn-outline-info mb-4" href="{% url 'transactions' %}?page={{ transactions.next_page_number }}">Next</a>
-    <a class="btn btn-outline-info mb-4" href="{% url 'transactions' %}?page={{ transactions.paginator.num_pages }}">Last</a>
+    <a class="btn btn-outline-info mb-4" href="{% url 'all_transactions' %}?page={{ transactions.next_page_number }}">Next</a>
+    <a class="btn btn-outline-info mb-4" href="{% url 'all_transactions' %}?page={{ transactions.paginator.num_pages }}">Last</a>
     {% endif %}
   </div>
   {% endif %}

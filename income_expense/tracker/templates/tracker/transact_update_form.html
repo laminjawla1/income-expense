@@ -21,6 +21,31 @@
                         </div>
                     </div>
                     <div class="form-row">
+                        <div class="form-group col-md-12">
+                          {{ form.payee|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                          {{ form.payment_method|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                          {{ form.cheque_number|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                          {{ form.account_number|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                          {{ form.bank_name|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group col-md-4">
                           {{ form.item_one|as_crispy_field }}
                         </div>
@@ -161,13 +186,10 @@
                         </div>
                     </div>
                     <div class="form-row">
-                      <div class="form-group col-md-4">
+                      <div class="form-group col-md-6">
                         {{ form.category|as_crispy_field }}
                       </div>
-                      <div class="form-group col-md-4">
-                        {{ form.status|as_crispy_field }}
-                      </div>
-                      <div class="form-group col-md-4">
+                      <div class="form-group col-md-6">
                         {{ form.total_amount|as_crispy_field }}
                       </div>
                   </div>
