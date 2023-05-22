@@ -10,19 +10,31 @@
     }
 </style>
 <div class="row">
-    <div class="col-sm-6">
-        <marquee>
-            <h3 style="color: white; text-align: center;" class="fw-bold">This information contains the incomes and expenses of {{user.profile.company}} for the month {{date|date:"F d, Y"}}.</h3>
-        </marquee>
+    <div class="col-md-8">
+        <h3 style="color: white; text-align: center;" class="fw-bold">{{company}}</h3>
     </div>
-    <div class="col-sm-6">
-        <form method="post" class="d-flex" role="search">
-          {% csrf_token %}
-          <input class="form-control me-2" type="date" name="date">
-          <button class="btn btn-success" type="submit">Filter</button>
-        </form>
+    <div class="col-md-4">
+      <form method="post" class="d-flex" role="search">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group col-md-4">
+              <select name="company" class="form-select" aria-label="Default select example">
+                  <option selected disabled>Company</option>
+                  {% for comapany in companies %}
+                      <option value="{{comapany}}">{{comapany}}</option>
+                  {% endfor %}
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <input class="form-control me-2" type="date" name="date">
+            </div>
+            <div class="form-group col-md-4 d-md-flex justify-content-md-end">
+              <button class="btn btn-success text-align-center" type="submit">Filter</button>
+            </div>
+        </div>
+      </form>
     </div>
-</div>
+  </div>
 <div class="row">
     <div class="col-sm-6">
         <div class="t1">
@@ -184,7 +196,14 @@
                                 'rgba(255, 206, 86, 1)',
                                 'rgba(75, 192, 192, 1)',
                                 'rgba(153, 102, 255, 1)',
-                                'rgba(255, 159, 64, 1)'
+                                'rgba(255, 159, 64, 1)',
+                                'rgba(232, 141, 64, 1)',
+                                'rgba(222, 120, 89, 1)',
+                                'rgba(180, 185, 23, 1)',
+                                'rgba(78, 100, 135, 1)',
+                                'rgba(223, 98, 163, 1)',
+                                'rgba(54, 74, 171, 1)',
+                                'rgba(111, 125, 54, 1)',
                             ],
                             borderColor: [
                                 'rgba(255, 99, 132, 1)',

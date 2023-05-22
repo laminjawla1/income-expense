@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import PaymentVoucher, Category
+from .models import PaymentVoucher, Category, Company
 
 
 class PaymentVoucherAdmin(admin.ModelAdmin):
@@ -10,3 +10,4 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
 
 admin.site.register(PaymentVoucher, PaymentVoucherAdmin)
 admin.site.register(Category)
+admin.site.register(Company)

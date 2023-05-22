@@ -11,25 +11,25 @@
     <div class="col-md-12">
         <!-- <input class="btn btn-secondary" type=button value="Back" onClick="javascript:history.go(-1);"> -->
         <div class="watermark-container" style="position:relative;">
-        {% if user.profile.company == "Yonna Foreign Exchange Bureau" %}
+        {% if pv.prepared_by.profile.company.name == "Yonna Foreign Exchange Bureau" %}
             <img src="{% static 'tracker/images/forex.jpeg' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
-        {% elif user.profile.company == "Yonna Islamic Microfinance" %}
+        {% elif pv.prepared_by.profile.company.name == "Yonna Islamic Microfinance" %}
             <img src="{% static 'tracker/images/microfinance.png' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
-        {% elif user.profile.company == "Yonna Enterprise" %}
+        {% elif pv.prepared_by.profile.company.name == "Yonna Enterprise" %}
             <img src="{% static 'tracker/images/enterprise.jpeg' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
         {% endif %}
         <div class="container mt-1 mb-1" style="background-color: white;">
             <div class="row">
                 <div class="col-md-12">
-                    {% if user.profile.company == "Yonna Foreign Exchange Bureau" %}
+                    {% if pv.prepared_by.profile.company.name == "Yonna Foreign Exchange Bureau" %}
                         <img src="{% static 'tracker/images/forex.jpeg' %}" width='115' height='115' class="rounded-circle">
-                    {% elif user.profile.company == "Yonna Islamic Microfinance" %}
+                    {% elif pv.prepared_by.profile.company.name == "Yonna Islamic Microfinance" %}
                         <img src="{% static 'tracker/images/microfinance.png' %}" width='115' height='115' class="rounded-circle">
-                    {% elif user.profile.company == "Yonna Enterprise" %}
+                    {% elif pv.prepared_by.profile.company.name == "Yonna Enterprise" %}
                         <img src="{% static 'tracker/images/enterprise.jpeg' %}" width='115' height='115' class="rounded-circle">
                     {% endif %}
                     <div class="text-center lh-1 mb-2">
-                        <h6 class="fw-bold">{{pv.prepared_by.profile.company}} Payment Voucher</h6>
+                        <h6 class="fw-bold">{{pv.prepared_by.profile.company.name}} Payment Voucher</h6>
                     </div>
                     <div class="row mt-4">
                         <div class="col-md-10">
@@ -217,46 +217,107 @@
         </div>
     </div>
 </div>
-{% if user.profile.title != "Accountant" and not pv.approved %}
-<div class="row">
-    <div class="col-md-12">
-      <form method="post" class="d-flex" role="search">
-        {% csrf_token %}
-        <div class="form-row">
-            <input type="hidden" name="pv_id" value="{{pv.id}}">
-            <div class="mb-3 form-group col-md-6">
-                <textarea name="email_message" placeholder="Note to the subordinate incase the transaction isn't endorsed (optional)" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
-            </div>
-            <div class="form-group col-md-4">
-                {% if user.profile.title == "Auditor" %}
-                    <select name="status" class="form-select" aria-label="Default select example" required>
-                        <option selected disabled>Change Status</option>
-                        <option value="Accounts Desk">Accounts Desk</option>
-                        <option value="Management Level">Management Level</option>
-                    </select>
-                {% elif user.profile.title == "Manager" or user.profile.title == "CEO" and user.is_staff %}
-                    <select name="status" class="form-select" aria-label="Default select example" required>
-                        <option selected disabled>Change Status</option>
-                        <option value="Audit Level">Audit Level</option>
-                        <option value="Final Review">Final Review</option>
-                        <option value="Approved">Approved</option>
-                        <option value="On Hold">On Hold</option>
-                    </select>
-                {% else %}
-                    <select name="status" class="form-select" aria-label="Default select example" required>
-                        <option selected disabled>Change Status</option>
-                        <option value="Audit Level">Audit Level</option>
-                        <option value="Final Review">Final Review</option>
-                        <option value="On Hold">On Hold</option>
-                    </select>
-                {% endif %}
-            </div>
-            <div class="form-group col-md-2">
-              <button class="btn btn-success text-align-center" type="submit">Proceed</button>
+{% if not pv.approved %}
+    {% if pv.status == "Accounts Desk" and user.profile.title == "Accountant" %}
+        <div class="row">
+            <div class="col-md-12">
+            <form method="post" class="d-flex" role="search">
+                {% csrf_token %}
+                <div class="form-row">
+                    <input type="hidden" name="pv_id" value="{{pv.id}}">
+                    <div class="mb-3 form-group col-md-6">
+                        <textarea name="email_message" placeholder="Note to the Auditor about the transaction" class="form-control" id="exampleFormControlTextarea1" rows="2" required></textarea>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <select name="status" class="form-select" aria-label="Default select example" required>
+                            <option selected disabled>Change Status</option>
+                            <option value="Accounts Desk">Accounts Desk</option>
+                            <option value="Audit Level">Audit Level</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <button class="btn btn-success text-align-center" type="submit">Proceed</button>
+                    </div>
+                </div>
+            </form>
             </div>
         </div>
-      </form>
-    </div>
-  </div>
+    {% endif %}
+    {% if pv.status == "Audit Level" and user.profile.title == "Auditor" %}
+        <div class="row">
+            <div class="col-md-12">
+            <form method="post" class="d-flex" role="search">
+                {% csrf_token %}
+                <div class="form-row">
+                    <input type="hidden" name="pv_id" value="{{pv.id}}">
+                    <div class="mb-3 form-group col-md-6">
+                        <textarea name="email_message" placeholder="Note to the subordinate incase the transaction isn't endorsed (optional)" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <select name="status" class="form-select" aria-label="Default select example" required>
+                            <option selected disabled>Change Status</option>
+                            <option value="Accounts Desk">Accounts Desk</option>
+                            <option value="Management Level">Management Level</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2">
+                    <button class="btn btn-success text-align-center" type="submit">Proceed</button>
+                    </div>
+                </div>
+            </form>
+            </div>
+        </div>
+    {% endif %}
+    {% if pv.status == "Management Level" and user.profile.title == "Manager"%}
+        <div class="row">
+            <div class="col-md-12">
+            <form method="post" class="d-flex" role="search">
+                {% csrf_token %}
+                <div class="form-row">
+                    <input type="hidden" name="pv_id" value="{{pv.id}}">
+                    <div class="mb-3 form-group col-md-6">
+                        <textarea name="email_message" placeholder="Note to the subordinate incase the transaction isn't endorsed (optional)" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <select name="status" class="form-select" aria-label="Default select example" required>
+                            <option selected disabled>Change Status</option>
+                            <option value="Audit Level">Audit Level</option>
+                            <option value="Final Review">Final Review</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2">
+                    <button class="btn btn-success text-align-center" type="submit">Proceed</button>
+                    </div>
+                </div>
+            </form>
+            </div>
+        </div>
+    {% endif %}
+    {% if pv.status == "Final Review" or pv.status == "On Hold" and user.is_staff %}
+        <div class="row">
+            <div class="col-md-12">
+            <form method="post" class="d-flex" role="search">
+                {% csrf_token %}
+                <div class="form-row">
+                    <input type="hidden" name="pv_id" value="{{pv.id}}">
+                    <div class="mb-3 form-group col-md-6">
+                        <textarea name="email_message" placeholder="Note to the subordinate incase the transaction isn't endorsed (optional)" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <select name="status" class="form-select" aria-label="Default select example" required>
+                            <option selected disabled>Change Status</option>
+                            <option value="Management Level">Management Level</option>
+                            <option value="Approved">Approved</option>
+                            <option value="On Hold">On Hold</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2">
+                    <button class="btn btn-success text-align-center" type="submit">Proceed</button>
+                    </div>
+                </div>
+            </form>
+            </div>
+        </div>
+    {% endif %}
 {% endif %}
 {% endblock content %}

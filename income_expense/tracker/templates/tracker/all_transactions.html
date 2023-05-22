@@ -13,10 +13,10 @@
       {% csrf_token %}
       <div class="form-row">
           <div class="form-group col-md-2">
-            <select name="company" class="form-select" aria-label="Default select example">
-                <option selected disabled>Company</option>
-                {% for comapany in comapanies %}
-                    <option value="{{comapany}}">{{comapany}}</option>
+            <select name="company" class="form-select" aria-label="Default select example" aria-placeholder="Company">
+              <option selected disabled>Company</option>
+                {% for company in comapanies %}
+                    <option value="{{company}}">{{company}}</option>
                 {% endfor %}
             </select>
           </div>
@@ -57,7 +57,7 @@
           <th scope="col">Request_By</th>
           <th scope="col">Category</th>
           <th scope="col">Transaction_Type</th>
-          <th scope="col">status</th>
+          <th scope="col">PV_Status</th>
           <th scope="col">Date</th>
           <th scope="col">Total Amount</th>
         </tr>
@@ -67,7 +67,7 @@
         <tr>
             <td><a class="transaction_id" href="{% url 'render_pv' transaction.id %}">{{transaction.pv_id}}</a></td>
             <td>{{transaction.prepared_by.first_name}} {{transaction.prepared_by.last_name}}</td>
-            {% if transaction.approved %}
+            {% if not transaction.approved %}
               <td><a class="transaction_id" href="{% url 'update_transaction' transaction.id %}">{{transaction.request_by}}</a></td>
             {% else %}
               <td>{{transaction.request_by}}</td>

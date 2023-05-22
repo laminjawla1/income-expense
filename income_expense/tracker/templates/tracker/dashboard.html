@@ -4,12 +4,12 @@
 {% block content %}
     <!-- Main -->
     <div class="row">
-      <div class="col-md-9 mb-3">
+      <div class="col-md-8">
         <main class="main-container">
           <div class="main-cards">
             <div class="card">
                 <div class="card-inner">
-                  <h3>Total CFS</h3>
+                  <h3>Total</h3>
                   <span class="material-icons-outlined">format_align_justify</span>
                 </div>
                 <h1>{{total_cfs}}</h1>
@@ -58,8 +58,8 @@
           </div>
         </main>
       </div>
-      <div class="col-md-3 mb-5">
-        <span class="text-white mt-2">Top 3 Transactions</span>
+      <div class="col-md-4">
+        <span class="text-white mt-2">Top 5 Transactions</span>
         {% for recent in recents %}
           <ul class="list-group mb-3">
               <li class="list-group-item  justify-content-between lh-condensed">

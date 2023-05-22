@@ -1,17 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
+from tracker.models import Company
 from PIL import Image
 
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(default='profile_pics/default.png', upload_to='profile_pics')
-    company= models.CharField(max_length=100, choices=[
-        ("Yonna Foreign Exchange Bureau", "Yonna Foreign Exchange Bureau"),
-        ("Yonna Islamic Microfinance", "Yonna Islamic Microfinance"),
-        ("Yonna Enterprise", "Yonna Enterprise"),
-        ("Yonna Insurance", "Yonna Insurance")
-    ])
+    company= models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
     title = models.CharField(max_length=50, choices=[
         ("IT", "IT"),
         ("Accountant", "Accountant"),

@@ -46,7 +46,7 @@
     {% if title %}
         <title>Yonna Group IE Portal - {{ title }}</title>
     {% else %}
-        <title>Yonna Group IE Portal</title>
+        <title>Yonna Income Expense Tracker</title>
     {% endif %}
 </head>
 <body>
@@ -57,17 +57,39 @@
             <div class="mymenu-bar">
                 <br>
                 <h3>Administration</h3>
-                <a href="{% url 'new_transactions' %}"><div class="btn btn-primary mybutton">Review New Transactions</div></a>
+                {% if current_page == "new_transactions" %}
+                    <a href="{% url 'new_transactions' %}"><div class="btn btn-primary active">Review New Transactions</div></a>
+                {% else %}
+                    <a href="{% url 'new_transactions' %}"><div class="btn btn-primary">Review New Transactions</div></a>
+                {% endif %}
                 <br><br>
-                <a href="{% url 'all_transactions' %}"><div class="btn btn-primary mybutton">All Transactions</div></a>
+                {% if current_page == "all_transactions" %}
+                    <a href="{% url 'all_transactions' %}"><div class="btn btn-primary active">All Transactions</div></a>
+                {% else %}
+                    <a href="{% url 'all_transactions' %}"><div class="btn btn-primary">All Transactions</div></a>
+                {% endif %}
                 <br><br>
-                <a href="{% url 'company_dashboard' %}"><div class="btn btn-primary mybutton">Company Dashboard</div></a>
+                {% if current_page == "hold_transactions" %}
+                    <a href="{% url 'hold_transactions' %}"><div class="btn btn-primary active">Hold Transactions</div></a>
+                {% else %}
+                    <a href="{% url 'hold_transactions' %}"><div class="btn btn-primary">Hold Transactions</div></a>
+                {% endif %}
                 <br><br>
-                <a href="#"><div class="btn btn-primary mybutton">Company Leaderboard</div></a>
+                {% if current_page == "company_dashboard" %}
+                    <a href="{% url 'company_dashboard' %}"><div class="btn btn-primary active">Company Dashboard</div></a>
+                {% else %}
+                    <a href="{% url 'company_dashboard' %}"><div class="btn btn-primary ">Company Dashboard</div></a>
+                {% endif %}
+                <br><br>
+                {% if current_page == "company_leaderboard" %}
+                    <a href="{% url 'company_leaderboard' %}"><div class="btn btn-primary active">Company Leaderboard</div></a>
+                {% else %}
+                    <a href="{% url 'company_leaderboard' %}"><div class="btn btn-primary">Company Leaderboard</div></a>
+                {% endif %}
               </div>
             {% endif %}
             <div class="container">
-                <a style="color: white;" class="navbar-brand mr-4"><i class="fa-sharp fa-solid fa-buildings"></i>{{user.profile.company}}</a>
+                <a style="color: white;" class="navbar-brand mr-4"><i class="fa-sharp fa-solid fa-buildings"></i>{{user.profile.company.name}}</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle"
                     aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -97,6 +119,7 @@
                     <!-- Navbar Right Side -->
                     {% if user.is_authenticated %}
                     <div class="navbar-nav ms-auto">
+                    <a style="color: rgb(13, 159, 13);" class="nav-item nav-link active" href="{% url 'profile' %}">Welcome, {{user.first_name}} {{user.last_name}}!</a>
                     {% if current_page == "profile" %}
                         <a class="nav-item nav-link active" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
                     {% else %}

@@ -4,6 +4,15 @@ from django.utils import timezone
 from django.urls import reverse
 from django.core.validators import MinValueValidator
 
+class Company(models.Model):
+    class Meta:
+        verbose_name_plural = 'Companies'
+
+    name = models.CharField(max_length=256)
+
+    def __str__(self) -> str:
+        return self.name
+
 class Category(models.Model):
     class Meta:
         verbose_name_plural = 'Categories'
