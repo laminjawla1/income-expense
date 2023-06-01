@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True #str(os.environ.get("DEBUG")) == "1"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["d016-102-140-128-17.ngrok-free.app", "127.0.0.1"]
 
 
 # Application definition
@@ -162,3 +162,5 @@ EMAIL_HOST_PASSWORD=os.environ.get("google_password")
 SERVER_EMAIL = EMAIL_HOST_USER
 
 SESSION_EXPIRE_SECONDS = 3600
+
+CSRF_TRUSTED_ORIGINS = ["https://d016-102-140-128-17.ngrok-free.app"]

@@ -118,7 +118,7 @@
                                     <td>D{{pv.item_four_total_price|floatformat:2|intcomma}}</td>
                                 </tr>
                             {% endif %}
-                            {% if item_five %}
+                            {% if pv.item_five %}
                                 <tr>
                                     <td>{{pv.item_five}}</td>
                                     <td>{{pv.item_five_quantity}}</td>
@@ -126,12 +126,44 @@
                                     <td>D{{pv.item_five_total_price|floatformat:2|intcomma}}</td>
                                 </tr>
                             {% endif %}
-                            {% if item_six %}
+                            {% if pv.item_six %}
                                 <tr>
-                                    <td>{{pv.item_five}}</td>
-                                    <td>{{pv.item_five_quantity}}</td>
-                                    <td>D{{pv.item_five_unit_price|floatformat:2|intcomma}}</td>
-                                    <td>D{{pv.item_five_total_price|floatformat:2|intcomma}}</td>
+                                    <td>{{pv.item_siz}}</td>
+                                    <td>{{pv.item_siz_quantity}}</td>
+                                    <td>D{{pv.item_siz_unit_price|floatformat:2|intcomma}}</td>
+                                    <td>D{{pv.item_siz_total_price|floatformat:2|intcomma}}</td>
+                                </tr>
+                            {% endif %}
+                            {% if pv.item_seven %}
+                                <tr>
+                                    <td>{{pv.item_seven}}</td>
+                                    <td>{{pv.item_seven_quantity}}</td>
+                                    <td>D{{pv.item_seven_unit_price|floatformat:2|intcomma}}</td>
+                                    <td>D{{pv.item_seven_total_price|floatformat:2|intcomma}}</td>
+                                </tr>
+                            {% endif %}
+                            {% if pv.item_eight %}
+                                <tr>
+                                    <td>{{pv.item_eight}}</td>
+                                    <td>{{pv.item_eight_quantity}}</td>
+                                    <td>D{{pv.item_eight_unit_price|floatformat:2|intcomma}}</td>
+                                    <td>D{{pv.item_eight_total_price|floatformat:2|intcomma}}</td>
+                                </tr>
+                            {% endif %}
+                            {% if pv.item_nine %}
+                                <tr>
+                                    <td>{{pv.item_nine}}</td>
+                                    <td>{{pv.item_nine_quantity}}</td>
+                                    <td>D{{pv.item_nine_unit_price|floatformat:2|intcomma}}</td>
+                                    <td>D{{pv.item_nine_total_price|floatformat:2|intcomma}}</td>
+                                </tr>
+                            {% endif %}
+                            {% if pv.item_ten %}
+                                <tr>
+                                    <td>{{pv.item_ten}}</td>
+                                    <td>{{pv.item_ten_quantity}}</td>
+                                    <td>D{{pv.item_ten_unit_price|floatformat:2|intcomma}}</td>
+                                    <td>D{{pv.item_ten_total_price|floatformat:2|intcomma}}</td>
                                 </tr>
                             {% endif %}
                         </tbody>
@@ -149,10 +181,10 @@
                     </div>
                     <div class="row mt-3">
                         <div class="border col-md-4">
-                            <div class="d-flex flex-column text-center"><span><b>TOTAL AMOUNT IN FIGURES</b></span><span><em>D{{pv.total_amount|floatformat:2|intcomma}}</em></span></div>
+                            <div class="d-flex flex-column text-center"><span><strong>TOTAL AMOUNT IN FIGURES</strong></span><span><em>D{{pv.total_amount|floatformat:2|intcomma}}</em></span></div>
                         </div>
                         <div class="border col-md-8">
-                            <div class="d-flex flex-column text-center"><span><b>TOTAL AMOUNT IN WORDS</b></span><span><em>{{total_amount_in_words}}</em></span></div>
+                            <div class="d-flex flex-column text-center"><span><strong>TOTAL AMOUNT IN WORDS</strong></span><span><em>{{total_amount_in_words}}</em></span></div>
                         </div>
                     </div>
                     <div class="row mt-3">

@@ -15,6 +15,7 @@
         <thead class="thead-dark">
         <tr>
           <th scope="col">Company_Name</th>
+          <th scope="col">Balance</th>
           <th scope="col">Total_Income_Amount</th>
           <th scope="col">Total_Expense_Amount</th>
           <th scope="col">Difference</th>
@@ -24,6 +25,7 @@
         {% for item in context %}
         <tr>
             <td>{{item.name}}</td>
+            <td>D{{item.limit|floatformat:2|intcomma}}</td>
             <td>D{{item.total_income_amounts|floatformat:2|intcomma}}</td>
             <td>D{{item.total_expense_amounts|floatformat:2|intcomma}}</td>
             <td>D{{item.difference|floatformat:2|intcomma}}</td>

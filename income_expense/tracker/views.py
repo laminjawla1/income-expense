@@ -172,6 +172,11 @@ class Transact(LoginRequiredMixin, CreateView):
         if form.instance.item_ten and form.instance.item_ten_quantity and form.instance.item_ten_unit_price:
             form.instance.item_ten_total_price = form.instance.item_ten_quantity * form.instance.item_ten_unit_price
             form.instance.total_amount += form.instance.item_ten_total_price
+        
+        if form.instance.transaction_type == 'Expense':
+            if not self.request.user.profile.company.limit - form.instance.total_amount >= 0:
+                messages.error(self.request, f"The balance of {self.request.user.profile.company} is {gmd(self.request.user.profile.company.limit)}. Not sufficient to make this expense")
+                return HttpResponseRedirect(reverse("transact"))
 
         auditor = User.objects.filter(profile__company=self.request.user.profile.company, profile__title="Auditor").first()
         send_mail(
@@ -314,6 +319,7 @@ class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 @login_required
 def summary(request):
+    transactions = PaymentVoucher.objects.filter(prepared_by__profile__company=request.user.profile.company)
     if request.method == 'POST':
         date = request.POST['date']
         if date:
@@ -630,6 +636,13 @@ Best regards,
                     return HttpResponseRedirect(reverse('render_pv', args=[pv_id]))
         if request.user.is_staff:
             if status == "Approved":
+                    if pv.transaction_type == 'Expense':
+                        if pv.prepared_by.profile.company.limit - pv.total_amount >= 0:
+                            pv.prepared_by.profile.company.limit -= pv.total_amount
+                            pv.prepared_by.profile.company.save()
+                        else:
+                            messages.error(request, f"The balance of {pv.prepared_by.profile.company} is {gmd(pv.prepared_by.profile.company.limit)}. Not sufficient to make this expense")
+                            return HttpResponseRedirect(reverse("transactions"))
                     send_mail(
                         f'RE: Endorsed Transaction Notification - [{pv.transaction_type}]',
                         
@@ -677,9 +690,6 @@ def all_transactions(request):
     domain = "Yonna Group"
     transactions = PaymentVoucher.objects.order_by("-date", "prepared_by").all()
     if request.method == 'POST':
-        if not request.POST.get('company') or not not request.POST.get('date'):
-            messages.error(request, "Please provide some query parameters")
-            return HttpResponseRedirect(reverse("all_transactions"))
         date = request.POST.get('date')
         if date:
             try:
@@ -700,7 +710,6 @@ def all_transactions(request):
             if transactions:
                 domain = transactions[0].prepared_by.profile.company
         else:
-            print(request.POST.get('company'))
             transactions = PaymentVoucher.objects.filter(
                 prepared_by__profile__company__name__icontains=request.POST.get('company', "No company"),
                 pv_id__icontains=request.POST['pv_id'],
@@ -1102,11 +1111,11 @@ def company_leaderboard(request):
     yimf_total_income_amounts = PaymentVoucher.objects.filter(
         prepared_by__profile__company__name="Yonna Islamic Microfinance",
         transaction_type="Income", approved=True
-    ).aggregate(Sum('total_amount')).get('total_amount__sum')
+    ).aggregate(Sum('total_amount')).get('total_amount__sum') or 0
     yimf_total_expense_amounts = PaymentVoucher.objects.filter(
         prepared_by__profile__company__name="Yonna Islamic Microfinance",
         transaction_type="Expense", approved=True
-    ).aggregate(Sum('total_amount')).get('total_amount__sum')
+    ).aggregate(Sum('total_amount')).get('total_amount__sum') or 0
     yimf_difference = yimf_total_income_amounts - yimf_total_expense_amounts
 
     # Enterprise
@@ -1133,13 +1142,20 @@ def company_leaderboard(request):
 
     context = [
         {"name": "Yonna Foreign Exchange Bureau", "difference": yfeb_difference,
-         "total_income_amounts": yfeb_total_income_amounts, "total_expense_amounts": yfeb_total_expense_amounts},
+         "total_income_amounts": yfeb_total_income_amounts, "total_expense_amounts": yfeb_total_expense_amounts,
+         'limit': Company.objects.filter(name="Yonna Foreign Exchange Bureau").first().limit},
+
         {"name": "Yonna Islamic Microfinance", "difference": yimf_difference,
-         "total_income_amounts": yimf_total_income_amounts, "total_expense_amounts": yimf_total_expense_amounts},
+         "total_income_amounts": yimf_total_income_amounts, "total_expense_amounts": yimf_total_expense_amounts,
+         'limit': Company.objects.filter(name="Yonna Islamic Microfinance").first().limit},
+
         {"name": "Yonna Enterprise", "difference": ent_difference,
-         "total_income_amounts": ent_total_income_amounts, "total_expense_amounts": ent_total_expense_amounts},
+         "total_income_amounts": ent_total_income_amounts, "total_expense_amounts": ent_total_expense_amounts,
+         'limit': Company.objects.filter(name="Yonna Enterprise").first().limit},
+
         {"name": "Yonna Insurance", "difference": insurance_difference,
-         "total_income_amounts": insurance_total_income_amounts, "total_expense_amounts": insurance_total_expense_amounts},
+         "total_income_amounts": insurance_total_income_amounts, "total_expense_amounts": insurance_total_expense_amounts,
+         'limit': Company.objects.filter(name="Yonna Insurance").first().limit},
     ]
 
     context = sorted(context, key=lambda c: c["difference"], reverse=True)

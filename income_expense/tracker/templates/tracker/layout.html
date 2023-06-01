@@ -32,6 +32,7 @@
     <script src="{% static 'js/jquery-ui-1.13.2/jquery-ui.js' %}"></script>
     <script src="{% static 'js/script.js' %}"></script>
 
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <!-- Montserrat Font -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -119,13 +120,18 @@
                     <!-- Navbar Right Side -->
                     {% if user.is_authenticated %}
                     <div class="navbar-nav ms-auto">
+                        {% if user.profile.company.limit > 10000 %}
+                            <a style="color: rgb(13, 159, 13);" class="nav-item nav-link active">Balance: D{{user.profile.company.limit|floatformat:2|intcomma}}</a>
+                        {% else %}
+                            <a style="color: red" class="nav-item nav-link active">Balance: D{{user.profile.company.limit|floatformat:2|intcomma}}</a>
+                        {% endif %}
                     <a style="color: rgb(13, 159, 13);" class="nav-item nav-link active" href="{% url 'profile' %}">Welcome, {{user.first_name}} {{user.last_name}}!</a>
                     {% if current_page == "profile" %}
                         <a class="nav-item nav-link active" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
                     {% else %}
                         <a class="nav-item nav-link" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
                     {% endif %}
-                      <a class="nav-item nav-link" href="{% url 'logout' %}"><img src="{% static 'tracker/images/logout.png' %}" width='25' height='25' class="rounded-circle"></a>
+                      <a style="color: red" class="nav-item nav-link" href="{% url 'logout' %}"><span class="material-symbols-outlined">logout</span></a>
                     </div>
                     {% endif %}
                 </div>

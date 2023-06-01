@@ -9,6 +9,7 @@ class Company(models.Model):
         verbose_name_plural = 'Companies'
 
     name = models.CharField(max_length=256)
+    limit = models.FloatField(default=0)
 
     def __str__(self) -> str:
         return self.name
