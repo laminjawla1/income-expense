@@ -8,8 +8,10 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(default='profile_pics/default.png', upload_to='profile_pics')
     company= models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
-    title = models.CharField(max_length=50, choices=[
+    title = models.CharField(max_length=50, null=True, blank=True, choices=[
         ("IT", "IT"),
+        ("HR", "HR"),
+        ("Compliance Officer", "Compliance Officer"),
         ("Accountant", "Accountant"),
         ("Auditor", "Auditor"),
         ("Manager", "Manager"),
