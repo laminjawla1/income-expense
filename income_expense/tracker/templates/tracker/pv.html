@@ -7,245 +7,243 @@
         text-align: center;
     }
 </style>
-<div class="row">
-    <div class="col-md-12">
-        <!-- <input class="btn btn-secondary" type=button value="Back" onClick="javascript:history.go(-1);"> -->
-        <div class="watermark-container" style="position:relative;">
-        {% if pv.prepared_by.profile.company.name == "Yonna Foreign Exchange Bureau" %}
-            <img src="{% static 'tracker/images/forex.jpeg' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
-        {% elif pv.prepared_by.profile.company.name == "Yonna Islamic Microfinance" %}
-            <img src="{% static 'tracker/images/microfinance.png' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
-        {% elif pv.prepared_by.profile.company.name == "Yonna Enterprise" %}
-            <img src="{% static 'tracker/images/enterprise.jpeg' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
-        {% endif %}
-        <div class="container mt-1 mb-1" style="background-color: white;">
-            <div class="row">
-                <div class="col-md-12">
-                    {% if pv.prepared_by.profile.company.name == "Yonna Foreign Exchange Bureau" %}
-                        <img src="{% static 'tracker/images/forex.jpeg' %}" width='115' height='115' class="rounded-circle">
-                    {% elif pv.prepared_by.profile.company.name == "Yonna Islamic Microfinance" %}
-                        <img src="{% static 'tracker/images/microfinance.png' %}" width='115' height='115' class="rounded-circle">
-                    {% elif pv.prepared_by.profile.company.name == "Yonna Enterprise" %}
-                        <img src="{% static 'tracker/images/enterprise.jpeg' %}" width='115' height='115' class="rounded-circle">
-                    {% endif %}
-                    <div class="text-center lh-1 mb-2">
-                        <h6 class="fw-bold">{{pv.prepared_by.profile.company.name}} Payment Voucher</h6>
-                    </div>
-                    <div class="row mt-4">
-                        <div class="col-md-10">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">PV Number</span> <small class="ms-3">{{pv.pv_id}}</small> </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">Date</span> <small class="ms-3">{{pv.date}}</small> </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">Transaction Type</span> <small class="ms-3">{{pv.transaction_type}}</small> </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">Prepared By</span> <small class="ms-3">{{pv.prepared_by.first_name}} {{pv.prepared_by.last_name}}</small> </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">Request By</span> <small class="ms-3">{{pv.request_by}}</small></div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">Category</span> <small class="ms-3">{{pv.category}}</small></div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">Status</span> <small class="ms-3">{{pv.status}}</small> </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">Payment Method</span> <small class="ms-3">{{pv.payment_method}}</small> </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">Payee</span> <small class="ms-3">{{pv.payee}}</small> </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">Bank Name</span> <small class="ms-3">{{pv.bank_name}}</small> </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">Cheque Number</span> <small class="ms-3">{{pv.cheque_number}}</small> </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div> <span class="fw-bolder">Account Number</span> <small class="ms-3">{{pv.account_number}}</small> </div>
-                                </div>
-                            </div>
-                        </div>
-                        <table class="table table-striped table-bordered table-responsive-l mt-4">
-                            <thead class="thead-dark">
-                            <tr>
-                              <th scope="col">ITEMS</th>
-                              <th scope="col">QUANTITIES</th>
-                              <th scope="col">UNIT PRICES</th>
-                              <th scope="col">TOTALS</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                                <td>{{pv.item_one}}</td>
-                                <td>{{pv.item_one_quantity}}</td>
-                                <td>D{{pv.item_one_unit_price|floatformat:2|intcomma}}</td>
-                                <td>D{{pv.item_one_total_price|floatformat:2|intcomma}}</td>
-                            </tr>
-                            {% if pv.item_two %}
-                                <tr>
-                                    <td>{{pv.item_two}}</td>
-                                    <td>{{pv.item_two_quantity}}</td>
-                                    <td>D{{pv.item_two_unit_price|floatformat:2|intcomma}}</td>
-                                    <td>D{{pv.item_two_total_price|floatformat:2|intcomma}}</td>
-                                </tr>
-                            {% endif %}
-                            {% if pv.item_three %}
-                                <tr>
-                                    <td>{{pv.item_three}}</td>
-                                    <td>{{pv.item_three_quantity}}</td>
-                                    <td>D{{pv.item_three_unit_price|floatformat:2|intcomma}}</td>
-                                    <td>D{{pv.item_three_total_price|floatformat:2|intcomma}}</td>
-                                </tr>
-                            {% endif %}
-                            {% if pv.item_four %}
-                                <tr>
-                                    <td>{{pv.item_four}}</td>
-                                    <td>{{pv.item_four_quantity}}</td>
-                                    <td>D{{pv.item_four_unit_price|floatformat:2|intcomma}}</td>
-                                    <td>D{{pv.item_four_total_price|floatformat:2|intcomma}}</td>
-                                </tr>
-                            {% endif %}
-                            {% if pv.item_five %}
-                                <tr>
-                                    <td>{{pv.item_five}}</td>
-                                    <td>{{pv.item_five_quantity}}</td>
-                                    <td>D{{pv.item_five_unit_price|floatformat:2|intcomma}}</td>
-                                    <td>D{{pv.item_five_total_price|floatformat:2|intcomma}}</td>
-                                </tr>
-                            {% endif %}
-                            {% if pv.item_six %}
-                                <tr>
-                                    <td>{{pv.item_siz}}</td>
-                                    <td>{{pv.item_siz_quantity}}</td>
-                                    <td>D{{pv.item_siz_unit_price|floatformat:2|intcomma}}</td>
-                                    <td>D{{pv.item_siz_total_price|floatformat:2|intcomma}}</td>
-                                </tr>
-                            {% endif %}
-                            {% if pv.item_seven %}
-                                <tr>
-                                    <td>{{pv.item_seven}}</td>
-                                    <td>{{pv.item_seven_quantity}}</td>
-                                    <td>D{{pv.item_seven_unit_price|floatformat:2|intcomma}}</td>
-                                    <td>D{{pv.item_seven_total_price|floatformat:2|intcomma}}</td>
-                                </tr>
-                            {% endif %}
-                            {% if pv.item_eight %}
-                                <tr>
-                                    <td>{{pv.item_eight}}</td>
-                                    <td>{{pv.item_eight_quantity}}</td>
-                                    <td>D{{pv.item_eight_unit_price|floatformat:2|intcomma}}</td>
-                                    <td>D{{pv.item_eight_total_price|floatformat:2|intcomma}}</td>
-                                </tr>
-                            {% endif %}
-                            {% if pv.item_nine %}
-                                <tr>
-                                    <td>{{pv.item_nine}}</td>
-                                    <td>{{pv.item_nine_quantity}}</td>
-                                    <td>D{{pv.item_nine_unit_price|floatformat:2|intcomma}}</td>
-                                    <td>D{{pv.item_nine_total_price|floatformat:2|intcomma}}</td>
-                                </tr>
-                            {% endif %}
-                            {% if pv.item_ten %}
-                                <tr>
-                                    <td>{{pv.item_ten}}</td>
-                                    <td>{{pv.item_ten_quantity}}</td>
-                                    <td>D{{pv.item_ten_unit_price|floatformat:2|intcomma}}</td>
-                                    <td>D{{pv.item_ten_total_price|floatformat:2|intcomma}}</td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                        </table>
-                    </div>
-                    <div class="row mt-1">
-                        <div class="col-dm-12">
-                            <h3 class="text-center">Description</h3>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-dm-12 text-center">
-                            <p>{{pv.description}}</p>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="border col-md-4">
-                            <div class="d-flex flex-column text-center"><span><strong>TOTAL AMOUNT IN FIGURES</strong></span><span><em>D{{pv.total_amount|floatformat:2|intcomma}}</em></span></div>
-                        </div>
-                        <div class="border col-md-8">
-                            <div class="d-flex flex-column text-center"><span><strong>TOTAL AMOUNT IN WORDS</strong></span><span><em>{{total_amount_in_words}}</em></span></div>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-dm-12">
-                            <h5 class="text-center"><u>SIGNATORIES</u></h5>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-2">
-                            <div> <span class="fw-bolder"><u>Request By</u></span></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div> <span class="fw-bolder"><u>Prepared By</u></span></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div> <span class="fw-bolder"><u>Reviewed By</u></span></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div> <span class="fw-bolder"><u>Verified By</u></span></div>
-                        </div>
-                        <div class="col-md-4">
-                            <div> <span class="fw-bolder"><u>Approved By</u></span></div>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-2">
-                            <div> <span class="fw-bolder">{{pv.request_by}}</span></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div> <span class="fw-bolder">{{pv.prepared_by.first_name}} {{pv.prepared_by.last_name}}</span></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div> <span class="fw-bolder">{{pv.reviewed_by.first_name}} {{pv.reviewed_by.last_name}}</span></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div> <span class="fw-bolder">{{pv.verified_by.first_name}} {{pv.verified_by.last_name}}</span></div>
-                        </div>
-                        <div class="col-md-4">
-                            <div> <span class="fw-bolder">{{pv.approved_by.first_name}} {{pv.approved_by.last_name}}</span></div>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-2">
-                            <div> <span>.........................................</span></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div> <span>.........................................</span></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div> <span>.........................................</span></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div> <span>.........................................</span></div>
-                        </div>
-                        <div class="col-md-4">
-                            <div> <span>......................................................................................</span></div>
-                        </div>
-                    </div>
-                    <br>
-                </div>
+<div class="watermark-container" style="position:relative;">
+<div class="col-md-11">
+    <!-- <input class="btn btn-secondary" type=button value="Back" onClick="javascript:history.go(-1);"> -->
+    {% if pv.prepared_by.profile.company.name == "Yonna Foreign Exchange Bureau" %}
+        <img src="{% static 'tracker/images/forex.jpeg' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
+    {% elif pv.prepared_by.profile.company.name == "Yonna Islamic Microfinance" %}
+        <img src="{% static 'tracker/images/microfinance.png' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
+    {% elif pv.prepared_by.profile.company.name == "Yonna Enterprise" %}
+        <img src="{% static 'tracker/images/enterprise.jpeg' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
+    {% endif %}
+    <div class="container mt-2 mb-1 border border-secondary rounded" style="background-color: white;">
+        <div class="row mt-4">
+            <div class="col-md-4">
+                {% if pv.prepared_by.profile.company.name == "Yonna Foreign Exchange Bureau" %}
+                    <img src="{% static 'tracker/images/forex.jpeg' %}" width='115' height='115'>
+                {% elif pv.prepared_by.profile.company.name == "Yonna Islamic Microfinance" %}
+                    <img src="{% static 'tracker/images/microfinance.png' %}" width='115' height='115'>
+                {% elif pv.prepared_by.profile.company.name == "Yonna Enterprise" %}
+                    <img src="{% static 'tracker/images/enterprise.jpeg' %}" width='115' height='115'>
+                {% endif %}
             </div>
+            <div class="col-md-5">
+                <h4 class="fw-bold text-center">{{pv.prepared_by.profile.company.name}}</h4>
+            </div>
+            <div class="col-md-3 d-md-flex justify-content-md-end">
+                <h6 class="fw-bold text-center">{{pv.date|date:"F d, Y"}}</h6>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">PV Number</span> <small class="ms-3">{{pv.pv_id}}</small> </div>
+            </div>
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">Date</span> <small class="ms-3">{{pv.date}}</small> </div>
+            </div>
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">Transaction Type</span> <small class="ms-3">{{pv.transaction_type}}</small> </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">Prepared By</span> <small class="ms-3">{{pv.prepared_by.first_name}} {{pv.prepared_by.last_name}}</small> </div>
+            </div>
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">Request By</span> <small class="ms-3">{{pv.request_by}}</small></div>
+            </div>
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">Category</span> <small class="ms-3">{{pv.category}}</small></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">Status</span> <small class="ms-3">{{pv.status}}</small> </div>
+            </div>
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">Payment Method</span> <small class="ms-3">{{pv.payment_method}}</small> </div>
+            </div>
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">Payee</span> <small class="ms-3">{{pv.payee}}</small> </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">Bank Name</span> <small class="ms-3">{{pv.bank_name}}</small> </div>
+            </div>
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">Cheque Number</span> <small class="ms-3">{{pv.cheque_number}}</small> </div>
+            </div>
+            <div class="col-md-4">
+                <div> <span class="fw-bolder">Account Number</span> <small class="ms-3">{{pv.account_number}}</small> </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table table-striped table-bordered table-responsive-sm mt-3">
+                        <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">ITEMS</th>
+                            <th scope="col">QUANTITIES</th>
+                            <th scope="col">UNIT PRICES</th>
+                            <th scope="col">TOTALS</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>{{pv.item_one}}</td>
+                            <td>{{pv.item_one_quantity}}</td>
+                            <td>D{{pv.item_one_unit_price|floatformat:2|intcomma}}</td>
+                            <td>D{{pv.item_one_total_price|floatformat:2|intcomma}}</td>
+                        </tr>
+                        {% if pv.item_two %}
+                            <tr>
+                                <td>{{pv.item_two}}</td>
+                                <td>{{pv.item_two_quantity}}</td>
+                                <td>D{{pv.item_two_unit_price|floatformat:2|intcomma}}</td>
+                                <td>D{{pv.item_two_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% endif %}
+                        {% if pv.item_three %}
+                            <tr>
+                                <td>{{pv.item_three}}</td>
+                                <td>{{pv.item_three_quantity}}</td>
+                                <td>D{{pv.item_three_unit_price|floatformat:2|intcomma}}</td>
+                                <td>D{{pv.item_three_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% endif %}
+                        {% if pv.item_four %}
+                            <tr>
+                                <td>{{pv.item_four}}</td>
+                                <td>{{pv.item_four_quantity}}</td>
+                                <td>D{{pv.item_four_unit_price|floatformat:2|intcomma}}</td>
+                                <td>D{{pv.item_four_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% endif %}
+                        {% if pv.item_five %}
+                            <tr>
+                                <td>{{pv.item_five}}</td>
+                                <td>{{pv.item_five_quantity}}</td>
+                                <td>D{{pv.item_five_unit_price|floatformat:2|intcomma}}</td>
+                                <td>D{{pv.item_five_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% endif %}
+                        {% if pv.item_six %}
+                            <tr>
+                                <td>{{pv.item_siz}}</td>
+                                <td>{{pv.item_siz_quantity}}</td>
+                                <td>D{{pv.item_siz_unit_price|floatformat:2|intcomma}}</td>
+                                <td>D{{pv.item_siz_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% endif %}
+                        {% if pv.item_seven %}
+                            <tr>
+                                <td>{{pv.item_seven}}</td>
+                                <td>{{pv.item_seven_quantity}}</td>
+                                <td>D{{pv.item_seven_unit_price|floatformat:2|intcomma}}</td>
+                                <td>D{{pv.item_seven_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% endif %}
+                        {% if pv.item_eight %}
+                            <tr>
+                                <td>{{pv.item_eight}}</td>
+                                <td>{{pv.item_eight_quantity}}</td>
+                                <td>D{{pv.item_eight_unit_price|floatformat:2|intcomma}}</td>
+                                <td>D{{pv.item_eight_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% endif %}
+                        {% if pv.item_nine %}
+                            <tr>
+                                <td>{{pv.item_nine}}</td>
+                                <td>{{pv.item_nine_quantity}}</td>
+                                <td>D{{pv.item_nine_unit_price|floatformat:2|intcomma}}</td>
+                                <td>D{{pv.item_nine_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% endif %}
+                        {% if pv.item_ten %}
+                            <tr>
+                                <td>{{pv.item_ten}}</td>
+                                <td>{{pv.item_ten_quantity}}</td>
+                                <td>D{{pv.item_ten_unit_price|floatformat:2|intcomma}}</td>
+                                <td>D{{pv.item_ten_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-dm-12">
+                <h3 class="text-center">Description</h3>
+                <p class="text-center">{{pv.description}}</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="border col-md-4">
+                <div class="d-flex flex-column text-center"><span><strong>TOTAL AMOUNT IN FIGURES</strong></span><span><em>D{{pv.total_amount|floatformat:2|intcomma}}</em></span></div>
+            </div>
+            <div class="border col-md-8">
+                <div class="d-flex flex-column text-center"><span><strong>TOTAL AMOUNT IN WORDS</strong></span><span><em>{{total_amount_in_words}}</em></span></div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-dm-12">
+                <h5 class="text-center"><u>SIGNATORIES</u></h5>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-2 text-center">
+                <div> <span class="fw-bolder"><u>Request By</u></span></div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div> <span class="fw-bolder"><u>Prepared By</u></span></div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div> <span class="fw-bolder"><u>Reviewed By</u></span></div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div> <span class="fw-bolder"><u>Verified By</u></span></div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div> <span class="fw-bolder"><u>Approved By</u></span></div>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-2 text-center">
+                <div> <span class="fw-bolder">{{pv.request_by}}</span></div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div> <span class="fw-bolder">{{pv.prepared_by.first_name}} {{pv.prepared_by.last_name}}</span></div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div> <span class="fw-bolder">{{pv.reviewed_by.first_name}} {{pv.reviewed_by.last_name}}</span></div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div> <span class="fw-bolder">{{pv.verified_by.first_name}} {{pv.verified_by.last_name}}</span></div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div> <span class="fw-bolder">{{pv.approved_by.first_name}} {{pv.approved_by.last_name}}</span></div>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-2 text-center">
+                <div> <span>.........................................</span></div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div> <span>.........................................</span></div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div> <span>.........................................</span></div>
+            </div>
+            <div class="col-md-2 text-center">
+                <div> <span>.........................................</span></div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div> <span>.......................................................................</span></div>
+            </div>
+        </div>
+        <br>
         </div>
     </div>
 </div>

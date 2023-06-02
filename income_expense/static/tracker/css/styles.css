@@ -15,7 +15,7 @@ ul {
 }
 
 .bg-steel {
-  background-color:#490549
+  background-color:#490549;
 }
 
 .site-header .navbar-nav .nav-link {
@@ -105,28 +105,29 @@ a.transaction_id:hover {
 
 .main-cards {
   display: grid;
-  grid-template-columns: 30% 30% 30%;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 10px;
   margin: 10px 0;
+  overflow: hidden;
 }
 
 .main-cards1 {
   display: grid;
-  grid-template-columns: 30% 30% 30%;
+  grid-template-columns:1fr 1fr 1fr 1fr;
   gap: 10px;
   margin: 10px 0;
 }
 
 .main-cards2 {
   display: grid;
-  grid-template-columns: 30% 30% 30%;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 10px;
   margin: 10px 0;
 }
 
 .main-cards3 {
   display: grid;
-  grid-template-columns: 30% 30% 30%;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 10px;
   margin: 10px 0;
 }

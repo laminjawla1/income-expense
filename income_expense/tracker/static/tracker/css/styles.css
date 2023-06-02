@@ -251,12 +251,12 @@ form[id="login-form"] {
 }
 
 .login-form {
-  padding: 30px 38px 55px;
+  /* padding: 30px 38px 55px; */
   border: 5px dotted rgb(255, 255, 255) center;
   color: white;
-  height: 450px;
-  max-width: 80px;
-  min-width: 45%;
+  /* height: 450px; */
+  /* max-width: 80px; */
+  /* min-width: 45%; */
   margin: auto;
   padding-bottom: 2em;
   background-color: #77176f;
