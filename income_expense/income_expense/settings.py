@@ -89,14 +89,23 @@ WSGI_APPLICATION = "income_expense.wsgi.application"
 #     }
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': os.environ.get('database_name'),
+#         'USER': os.environ.get('database_username'),
+#         'PASSWORD': os.environ.get('database_password'),
+#         'HOST': '127.0.0.1',
+#         'PORT': '3306',
+#     }
+# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('database_name'),
         'USER': os.environ.get('database_username'),
         'PASSWORD': os.environ.get('database_password'),
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'HOST': 'yonnaincomeexpense.mysql.pythonanywhere-services.com',
     }
 }
 # Password validation
