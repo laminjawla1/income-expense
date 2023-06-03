@@ -27,6 +27,7 @@ def dashboard(request):
         final_review = len(PaymentVoucher.objects.filter(status="Final Review"))
         on_hold = len(PaymentVoucher.objects.filter(status="On Hold"))
         transactions = PaymentVoucher.objects.order_by('-total_amount').all()[:5]
+        total_transactions = PaymentVoucher.objects.count()
     else:
         total_cfs = len(PaymentVoucher.objects.filter(prepared_by__profile__company__in=request.user.profile.company.all()))
         audit_level = len(PaymentVoucher.objects.filter(
@@ -42,10 +43,12 @@ def dashboard(request):
         transactions = PaymentVoucher.objects.filter(
                 prepared_by__profile__company__in=request.user.profile.company.all(),
             ).order_by('-total_amount')[:5]
+        total_transactions = PaymentVoucher.objects.filter(prepared_by__profile__company__in=request.user.profile.company.all()).count()
 
     return render(request, "tracker/dashboard.html",{
         'total_cfs': total_cfs, 'audit_level': audit_level, 'approved_cfs': approved_cfs, 'management': management,
-        'final_review': final_review, 'on_hold': on_hold, 'current_page': 'dashboard', 'recents': transactions
+        'final_review': final_review, 'on_hold': on_hold, 'current_page': 'dashboard', 'recents': transactions,
+        'total_transactions': total_transactions
     })
 
 @login_required
