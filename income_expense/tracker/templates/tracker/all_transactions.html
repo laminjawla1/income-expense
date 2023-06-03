@@ -3,11 +3,11 @@
 {% load static %}
 {% block content %}
 <style>
-  td {
+  td, th {
     text-align: center;
   }
 </style>
-<div class="row">
+<div class="row mt-1">
   <div class="col-md-12">
     <form method="post" class="d-flex" role="search">
       {% csrf_token %}
@@ -66,14 +66,14 @@
         <tr>
             <td><a class="transaction_id" href="{% url 'render_pv' transaction.id %}">{{transaction.pv_id}}</a></td>
             {% if not transaction.approved %}
-              <td><a class="transaction_id" href="{% url 'update_transaction' transaction.id %}">{{transaction.prepared_by.profile.company}}</a></td>
+              <td><a class="transaction_id" href="{% url 'update_transaction' transaction.id %}">{{transaction.prepared_by.profile.company.first}}</a></td>
             {% else %}
-              <td>{{transaction.prepared_by.profile.company}}</td>
+              <td>{{transaction.prepared_by.profile.company.first}}</td>
             {% endif %}
             <td>{{transaction.category}}</td>
             <td>{{transaction.transaction_type}}</td>
             {% if transaction.approved %}
-                <td style="text-align: center;"><img src="{% static 'tracker/images/tick.png' %}" width='14' height='14' class="rounded-circle"></td>
+                <td><img src="{% static 'tracker/images/tick.png' %}" width='14' height='14' class="rounded-circle"></td>
             {% else %}
             <td>{{transaction.status}}</td>
             {% endif %}

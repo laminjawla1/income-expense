@@ -10,26 +10,26 @@
 <div class="watermark-container" style="position:relative;">
 <div class="col-md-11">
     <!-- <input class="btn btn-secondary" type=button value="Back" onClick="javascript:history.go(-1);"> -->
-    {% if pv.prepared_by.profile.company.name == "Yonna Foreign Exchange Bureau" %}
+    {% if pv.prepared_by.profile.company.first.name == "Yonna Foreign Exchange Bureau" %}
         <img src="{% static 'tracker/images/forex.jpeg' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
-    {% elif pv.prepared_by.profile.company.name == "Yonna Islamic Microfinance" %}
+    {% elif pv.prepared_by.profile.company.first.name == "Yonna Islamic Microfinance" %}
         <img src="{% static 'tracker/images/microfinance.png' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
-    {% elif pv.prepared_by.profile.company.name == "Yonna Enterprise" %}
-        <img src="{% static 'tracker/images/enterprise.jpeg' %}" style="position:absolute; top:0; left: 15%; opacity:0.1; width:65%;">
+    {% elif pv.prepared_by.profile.company.first.name == "Yonna Enterprise" %}
+        <img src="{% static 'tracker/images/enterprise.jpeg' %}" style="position:absolute; top:0; left: 20%; opacity:0.1; width:70%;">
     {% endif %}
     <div class="container mt-2 mb-1 border border-secondary rounded" style="background-color: white;">
         <div class="row mt-4">
             <div class="col-md-4">
-                {% if pv.prepared_by.profile.company.name == "Yonna Foreign Exchange Bureau" %}
+                {% if pv.prepared_by.profile.company.first.name == "Yonna Foreign Exchange Bureau" %}
                     <img src="{% static 'tracker/images/forex.jpeg' %}" width='115' height='115'>
-                {% elif pv.prepared_by.profile.company.name == "Yonna Islamic Microfinance" %}
+                {% elif pv.prepared_by.profile.company.first.name == "Yonna Islamic Microfinance" %}
                     <img src="{% static 'tracker/images/microfinance.png' %}" width='115' height='115'>
-                {% elif pv.prepared_by.profile.company.name == "Yonna Enterprise" %}
+                {% elif pv.prepared_by.profile.company.first.name == "Yonna Enterprise" %}
                     <img src="{% static 'tracker/images/enterprise.jpeg' %}" width='115' height='115'>
                 {% endif %}
             </div>
             <div class="col-md-5">
-                <h4 class="fw-bold text-center">{{pv.prepared_by.profile.company.name}}</h4>
+                <h4 class="fw-bold text-center">{{pv.prepared_by.profile.company.first.name}}</h4>
             </div>
             <div class="col-md-3 d-md-flex justify-content-md-end">
                 <h6 class="fw-bold text-center">{{pv.date|date:"F d, Y"}}</h6>
@@ -249,7 +249,7 @@
 </div>
 {% if not pv.approved %}
     {% if pv.status == "Accounts Desk" and user.profile.title == "Accountant" %}
-        <div class="row">
+        <div class="row container">
             <div class="col-md-12">
             <form method="post" class="d-flex" role="search">
                 {% csrf_token %}
@@ -274,7 +274,7 @@
         </div>
     {% endif %}
     {% if pv.status == "Audit Level" and user.profile.title == "Auditor" %}
-        <div class="row">
+        <div class="row container">
             <div class="col-md-12">
             <form method="post" class="d-flex" role="search">
                 {% csrf_token %}
@@ -299,7 +299,7 @@
         </div>
     {% endif %}
     {% if pv.status == "Management Level" and user.profile.title == "Manager"%}
-        <div class="row">
+        <div class="row container">
             <div class="col-md-12">
             <form method="post" class="d-flex" role="search">
                 {% csrf_token %}
@@ -324,7 +324,7 @@
         </div>
     {% endif %}
     {% if pv.status == "Final Review" or pv.status == "On Hold" and user.is_staff %}
-        <div class="row">
+        <div class="row container">
             <div class="col-md-12">
             <form method="post" class="d-flex" role="search">
                 {% csrf_token %}

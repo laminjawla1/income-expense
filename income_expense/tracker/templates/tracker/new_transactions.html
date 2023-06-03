@@ -27,7 +27,7 @@
         {% for transaction in transactions %}
         <tr>
             <td><a class="transaction_id" href="{% url 'render_pv' transaction.id %}">{{transaction.pv_id}}</a></td>
-            <td>{{transaction.prepared_by.profile.company}}</td>
+            <td>{{transaction.prepared_by.profile.company.first}}</td>
             <td>{{transaction.category}}</td>
             <td>{{transaction.transaction_type}}</td>
             {% if transaction.status == "Approved" %}

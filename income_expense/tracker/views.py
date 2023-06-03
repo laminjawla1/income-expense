@@ -28,19 +28,19 @@ def dashboard(request):
         on_hold = len(PaymentVoucher.objects.filter(status="On Hold"))
         transactions = PaymentVoucher.objects.order_by('-total_amount').all()[:5]
     else:
-        total_cfs = len(PaymentVoucher.objects.filter(prepared_by__profile__company=request.user.profile.company))
+        total_cfs = len(PaymentVoucher.objects.filter(prepared_by__profile__company__in=request.user.profile.company.all()))
         audit_level = len(PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company, status="Audit Level"))
+                prepared_by__profile__company__in=request.user.profile.company.all(), status="Audit Level"))
         approved_cfs = len(PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company, approved=True))
+                prepared_by__profile__company__in=request.user.profile.company.all(), approved=True))
         management = len(PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company, status="Management Level"))
+                prepared_by__profile__company__in=request.user.profile.company.all(), status="Management Level"))
         final_review = len(PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company, status="Final Review"))
+                prepared_by__profile__company__in=request.user.profile.company.all(), status="Final Review"))
         on_hold = len(PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company, status="On Hold"))
+                prepared_by__profile__company__in=request.user.profile.company.all(), status="On Hold"))
         transactions = PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company,
+                prepared_by__profile__company__in=request.user.profile.company.all(),
             ).order_by('-total_amount')[:5]
 
     return render(request, "tracker/dashboard.html",{
@@ -51,23 +51,22 @@ def dashboard(request):
 @login_required
 def transactions(request):
     transactions = PaymentVoucher.objects.filter(
-        prepared_by__profile__company=request.user.profile.company
+        prepared_by__profile__company__in=request.user.profile.company.all()
     ).order_by("-pv_id")
 
     if request.method == 'POST':
         date = request.POST.get('date')
-
         if date:
             try:
                 _date = datetime.strptime(date, '%Y-%m-%d')
-                transactions = transactions.filter(date=_date)
+                transactions = transactions.filter(date__year=_date.year, date__month=_date.month)
             except ValueError:
                 messages.error(request, 'Invalid date format')
                 return HttpResponseRedirect(reverse('transactions'))
 
         transactions = transactions.filter(
             pv_id__icontains=request.POST.get('pv_id'),
-            prepared_by__username__icontains=request.POST.get('prepared_by'),
+            prepared_by__first_name__icontains=request.POST.get('prepared_by'),
             request_by__icontains=request.POST.get('request_by'),
             status__icontains=request.POST.get('status'),
             category__name__icontains=request.POST.get('category'),
@@ -88,13 +87,13 @@ def transactions(request):
         paginator_page = paginator.page(1)
 
     income_amount = PaymentVoucher.objects.filter(
-        prepared_by__profile__company=request.user.profile.company,
+        prepared_by__profile__company__in=request.user.profile.company.all(),
         transaction_type="Income",
         approved=True
     ).aggregate(total_amount_sum=Sum('total_amount'))['total_amount_sum'] or 0
 
     expense_amount = PaymentVoucher.objects.filter(
-        prepared_by__profile__company=request.user.profile.company,
+        prepared_by__profile__company__in=request.user.profile.company.all(),
         transaction_type="Expense",
         approved=True
     ).aggregate(total_amount_sum=Sum('total_amount'))['total_amount_sum'] or 0
@@ -174,13 +173,15 @@ class Transact(LoginRequiredMixin, CreateView):
             form.instance.total_amount += form.instance.item_ten_total_price
         
         if form.instance.transaction_type == 'Expense':
-            if not self.request.user.profile.company.limit - form.instance.total_amount >= 0:
-                messages.error(self.request, f"The balance of {self.request.user.profile.company} is {gmd(self.request.user.profile.company.limit)}. Not sufficient to make this expense")
+            if not self.request.user.profile.company.first().limit - form.instance.total_amount >= 0:
+                messages.error(self.request, f"The balance of {self.request.user.profile.company.first()} is \
+                               {gmd(self.request.user.profile.company.first().limit)}. Not sufficient to make this expense")
                 return HttpResponseRedirect(reverse("transact"))
 
-        auditor = User.objects.filter(profile__company=self.request.user.profile.company, profile__title="Auditor").first()
+        auditor = User.objects.filter(profile__company__in=self.request.user.profile.company.all(), profile__title="Auditor").first()
         send_mail(
             f' New Transaction Recorded - [{form.instance.transaction_type}]',
+
             
             f"""Dear {auditor.first_name} {auditor.last_name},
 
@@ -200,9 +201,9 @@ Thank you for your attention to this matter.
 
 Best regards,
 {form.instance.prepared_by.first_name} {form.instance.prepared_by.last_name}
-{form.instance.prepared_by.profile.title} - {form.instance.prepared_by.profile.company}""", 
+{form.instance.prepared_by.profile.title} - {form.instance.prepared_by.profile.company.first}""", 
             'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com'), auditor.email],
+            [ auditor.email],
             fail_silently=False,
         )
         messages.success(self.request, f"New {form.instance.transaction_type} added successfully 😊")
@@ -210,10 +211,10 @@ Best regards,
 
     def get_context_data(self, *args, **kwargs):
         total_transactions = PaymentVoucher.objects.filter(
-            prepared_by__profile__company=self.request.user.profile.company,
+            prepared_by__profile__company__in=self.request.user.profile.company.all(),
         ).count()
         transactions = PaymentVoucher.objects.filter(
-            prepared_by__profile__company=self.request.user.profile.company,
+            prepared_by__profile__company__in=self.request.user.profile.company.all(),
         ).order_by('-date')[:10]
         context = super(Transact, self).get_context_data(*args, **kwargs)
         context['button'] = 'Add'
@@ -299,14 +300,14 @@ class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     
     def test_func(self):
         transaction = self.get_object()
-        return not transaction.approved
+        return not transaction.approved and not transaction.prepared_by.profile.company in self.request.user.profile.company.all()
     
     def get_context_data(self, *args, **kwargs):
         total_transactions = PaymentVoucher.objects.filter(
-            prepared_by__profile__company=self.request.user.profile.company,
+            prepared_by__profile__company__in=self.request.user.profile.company.all(),
         ).count()
         transactions = PaymentVoucher.objects.filter(
-            prepared_by__profile__company=self.request.user.profile.company,
+            prepared_by__profile__company__in=self.request.user.profile.company.all(),
         ).order_by('-date')[:15]
         context = super(UpdateTransact, self).get_context_data(*args, **kwargs)
         context['button'] = 'Update Transaction'
@@ -319,29 +320,29 @@ class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 @login_required
 def summary(request):
-    transactions = PaymentVoucher.objects.filter(prepared_by__profile__company=request.user.profile.company)
+    transactions = PaymentVoucher.objects.filter(
+        prepared_by__profile__company__in=request.user.profile.company.all(),
+    )
     if request.method == 'POST':
         date = request.POST['date']
         if date:
             try:
                 _date = datetime.strptime(date, '%Y-%m-%d')
-                transactions = transactions.filter(date=_date)
+                transactions = transactions.filter(date__year=_date.year, date__month=_date.month)
             except ValueError:
                 messages.error(request, 'Invalid date format')
                 return HttpResponseRedirect(reverse('transactions'))
             
-            expenses = PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company,
+            expenses = transactions.filter(
+                prepared_by__profile__company__in=request.user.profile.company.all(),
                 transaction_type = "Expense",
-                date__year=_date.year, date__month=_date.month, date__day=_date.day,
             ).all().order_by("-date")
             page = request.GET.get('page', 1)
             paginator = Paginator(expenses, 2)
 
-            expense_total_amount_total = PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company,
+            expense_total_amount_total = transactions.filter(
+                prepared_by__profile__company__in=request.user.profile.company.all(),
                 transaction_type = "Expense",
-                date__year=_date.year, date__month=_date.month, date__day=_date.day,
             ).aggregate(Sum('total_amount')).get('total_amount__sum')
 
             try:
@@ -349,30 +350,26 @@ def summary(request):
             except:
                 paginator = paginator.page(1)
 
-            incomes = PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company,
+            incomes = transactions.filter(
+                prepared_by__profile__company__in=request.user.profile.company.all(),
                 transaction_type = "Income",
-                date__year=_date.year, date__month=_date.month, date__day=_date.day,
                 ).all().order_by("-date")
 
-            incomes_t = PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company,
+            incomes_t = transactions.filter(
+                prepared_by__profile__company__in=request.user.profile.company.all(),
                 transaction_type = "Income",
-                date__year=_date.year, date__month=_date.month, date__day=_date.day,
                 ).all()
-            expenses_t = PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company,
+            expenses_t = transactions.filter(
+                prepared_by__profile__company__in=request.user.profile.company.all(),
                 transaction_type = "Expense",
-                date__year=_date.year, date__month=_date.month, date__day=_date.day,
                 ).all()
                 
             page = request.GET.get('page', 1)
             paginator1 = Paginator(incomes, 2)
 
-            income_total_amount_total = PaymentVoucher.objects.filter(
-                prepared_by__profile__company=request.user.profile.company,
+            income_total_amount_total = transactions.filter(
+                prepared_by__profile__company__in=request.user.profile.company.all(),
                 transaction_type = "Income",
-                date__year=_date.year, date__month=_date.month, date__day=_date.day,
             ).aggregate(Sum('total_amount')).get('total_amount__sum')
 
             try:
@@ -382,15 +379,15 @@ def summary(request):
 
             income_categories = Category.objects.filter(
                 paymentvoucher__transaction_type = "Income",
-                paymentvoucher__status = "Approved",
-                paymentvoucher__prepared_by__profile__company=request.user.profile.company,
-                paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month, paymentvoucher__date__day=_date.day,
+                paymentvoucher__approved=True,
+                paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
+                paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month,
             ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
             expense_categories = Category.objects.filter(
                 paymentvoucher__transaction_type = "Expense",
-                paymentvoucher__status = "Approved",
-                paymentvoucher__prepared_by__profile__company=request.user.profile.company,
-                paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month, paymentvoucher__date__day=_date.day,
+                paymentvoucher__approved=True,
+                paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
+                paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month,
             ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
 
             return render(request, "tracker/summary.html", {
@@ -398,17 +395,15 @@ def summary(request):
             'income_total_amount_total': income_total_amount_total, 'incomes_t': incomes_t, 'income_categories': income_categories,
             'expenses_t': expenses_t, 'date': timezone.now(), 'current_page': 'summary', 'expense_categories': expense_categories,
     })
-    expenses = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
+    expenses = transactions.filter(
+        prepared_by__profile__company__in=request.user.profile.company.all(),
         transaction_type = "Expense"
     ).all().order_by("-date")
     page = request.GET.get('page', 1)
     paginator = Paginator(expenses, 2)
 
-    expense_total_amount_total = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
+    expense_total_amount_total = transactions.filter(
+        prepared_by__profile__company__in=request.user.profile.company.all(),
         transaction_type = "Expense"
     ).aggregate(Sum('total_amount')).get('total_amount__sum')
 
@@ -417,29 +412,25 @@ def summary(request):
     except:
         paginator = paginator.page(1)
 
-    incomes = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
+    incomes = transactions.filter(
+        prepared_by__profile__company__in=request.user.profile.company.all(),
         transaction_type = "Income"
         ).all().order_by("-date")
 
-    incomes_t = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
+    incomes_t = transactions.filter(
+        prepared_by__profile__company__in=request.user.profile.company.all(),
         transaction_type = "Income"
         ).all()
-    expenses_t = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
+    expenses_t = transactions.filter(
+        prepared_by__profile__company__in=request.user.profile.company.all(),
         transaction_type = "Expense"
         ).all()
         
     page = request.GET.get('page', 1)
     paginator1 = Paginator(incomes, 2)
 
-    income_total_amount_total = PaymentVoucher.objects.filter(
-        date__year=timezone.now().year, date__month=timezone.now().month,
-        prepared_by__profile__company=request.user.profile.company,
+    income_total_amount_total = transactions.filter(
+        prepared_by__profile__company__in=request.user.profile.company.all(),
         transaction_type = "Income"
     ).aggregate(Sum('total_amount')).get('total_amount__sum')
 
@@ -450,13 +441,13 @@ def summary(request):
 
     income_categories = Category.objects.filter(
         paymentvoucher__transaction_type = "Income",
-        paymentvoucher__status = "Approved",
-        paymentvoucher__prepared_by__profile__company=request.user.profile.company,
+        paymentvoucher__approved=True,
+        paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
     ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
     expense_categories = Category.objects.filter(
         paymentvoucher__transaction_type = "Expense",
-        paymentvoucher__status = "Approved",
-        paymentvoucher__prepared_by__profile__company=request.user.profile.company,
+        paymentvoucher__approved=True,
+        paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
     ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
 
     return render(request, "tracker/summary.html", {
@@ -467,9 +458,9 @@ def summary(request):
 
 @login_required
 def render_pv(request, pv_id):
-
+    # get current page url
     page_url = request.build_absolute_uri()
-
+    # Lists of statuses that are used as the status of the pv
     statuses = [
         "Accounts Desk",
         "Audit Level",
@@ -485,7 +476,7 @@ def render_pv(request, pv_id):
     
     # Security check
     if not request.user.is_staff:
-        if pv.prepared_by.profile.company.name != request.user.profile.company.name:
+        if not pv.prepared_by.profile.company.first() in request.user.profile.company.all():
             raise PermissionDenied()
         
     if request.method == 'POST':                                                                 
@@ -500,7 +491,7 @@ def render_pv(request, pv_id):
             return HttpResponseRedirect(reverse('render_pv', args=[pv_id]))
 
         if status == "Management Level" and not request.user.is_staff:
-            manager = User.objects.filter(profile__company=request.user.profile.company, profile__title="Manager").first()
+            manager = User.objects.filter(profile__company__in=request.user.profile.company.all(), profile__title="Manager").first()
             send_mail(
                 f'Transaction Endorsed - [{pv.transaction_type}]',
                 f"""Dear {manager.first_name} {manager.last_name},
@@ -525,15 +516,15 @@ Thank you for your attention to this matter.
 
 Best regards,
 {request.user.first_name} {request.user.last_name}
-{request.user.profile.title} - {request.user.profile.company}""", 
+{request.user.profile.title} - {request.user.profile.company.first()}""", 
                 'yonnatech.g@gmail.com',
-                [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com'), manager.email],
+                [manager.email],
                 fail_silently=False,
             )
             pv.reviewed_by = request.user
         elif status == "Final Review":
-            ceo = User.objects.filter(profile__company__name="Yonna Foreign Exchange Bureau", profile__title="CEO").first()
-            manager = User.objects.filter(profile__company__name="Yonna Foreign Exchange Bureau", profile__title="Manager").first()
+            ceo = User.objects.filter(profile__title="CEO").first()
+            manager = User.objects.filter(is_staff=True, profile__title="Manager").first()
             if not ceo or not manager:
                 messages.error(request, "Contact IT for this exception")
                 return HttpResponseRedirect(reverse('render_pv', args=[pv_id]))
@@ -562,9 +553,9 @@ Thank you for your attention to this matter.
 
 Sincerely,
 {request.user.first_name} {request.user.last_name}
-{request.user.profile.title} - {request.user.profile.company}""", 
+{request.user.profile.title} - {request.user.profile.company.first()}""", 
                 'yonnatech.g@gmail.com',
-                [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com'),ceo.email, manager.email],
+                [ceo.email, manager.email],
                 fail_silently=False,
             )
             pv.verified_by = request.user
@@ -574,7 +565,7 @@ Sincerely,
                     f'Transaction Uendorsed - [{pv.transaction_type}]',
                     f'{email_message}', 
                     'yonnatech.g@gmail.com',
-                    [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com'), pv.prepared_by.email],
+                    [pv.prepared_by.email],
                     fail_silently=False,
                 )
             else:
@@ -587,14 +578,14 @@ Sincerely,
                     
                     f'{email_message}', 
                     'yonnatech.g@gmail.com',
-                    [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com'), pv.reviewed_by.email],
+                    [pv.reviewed_by.email],
                     fail_silently=False,
                 )
             else:
                 messages.error(request, 'Please leave a message')
                 return HttpResponseRedirect(reverse('render_pv', args=[pv_id]))
         elif status == "Audit Level" and request.user.profile.title == "Accountant":
-            auditor = User.objects.filter(profile__company=request.user.profile.company, profile__title="Auditor").first()
+            auditor = User.objects.filter(profile__company__in=request.user.profile.company.all(), profile__title="Auditor").first()
             send_mail(
             f'Request for Transaction Update - [{pv.pv_id}]',
             
@@ -615,9 +606,9 @@ Description: {pv.description}
 
 Best regards,
 {pv.prepared_by.first_name} {pv.prepared_by.last_name}
-{pv.prepared_by.profile.title} - {pv.prepared_by.profile.company}""", 
+{pv.prepared_by.profile.title} - {pv.prepared_by.profile.company.first()}""", 
             'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com'), auditor.email],
+            [auditor.email],
             fail_silently=False,
         )
         if request.user.is_staff:
@@ -628,7 +619,7 @@ Best regards,
                         
                         f'{email_message}', 
                         'yonnatech.g@gmail.com',
-                        [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com'), pv.verified_by.email],
+                        [ pv.verified_by.email],
                         fail_silently=False,
                     )
                 else:
@@ -637,15 +628,16 @@ Best regards,
         if request.user.is_staff:
             if status == "Approved":
                     if pv.transaction_type == 'Expense':
-                        if pv.prepared_by.profile.company.limit - pv.total_amount >= 0:
-                            pv.prepared_by.profile.company.limit -= pv.total_amount
-                            pv.prepared_by.profile.company.save()
+                        company = pv.prepared_by.profile.company.first()
+                        print(f"Company: {company}")
+                        if company.limit - pv.total_amount >= 0:
+                            company.limit -= pv.total_amount
+                            company.save()
                         else:
-                            messages.error(request, f"The balance of {pv.prepared_by.profile.company} is {gmd(pv.prepared_by.profile.company.limit)}. Not sufficient to make this expense")
+                            messages.error(request, f"The balance of {company} is {gmd(company.limit)}. Not sufficient to make this expense")
                             return HttpResponseRedirect(reverse("transactions"))
                     send_mail(
                         f'RE: Endorsed Transaction Notification - [{pv.transaction_type}]',
-                        
                         f"""Dear {pv.verified_by.first_name} {pv.verified_by.last_name},
 
 Thank you for notifying me about the endorsed transaction. I appreciate your diligence in ensuring that our financial records are accurate and compliant with our policies.
@@ -664,8 +656,7 @@ Sheriffo Touray
 CEO, Yonna Group
                         """, 
                         'yonnatech.g@gmail.com',
-                        [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com'), 
-                         pv.verified_by.email, pv.prepared_by.email, pv.reviewed_by],
+                        [pv.verified_by.email, pv.reviewed_by, pv.prepared_by.email],
                         fail_silently=False,
                     )
                     pv.approved_by = request.user
@@ -694,36 +685,45 @@ def all_transactions(request):
         if date:
             try:
                 _date = datetime.strptime(date, '%Y-%m-%d')
-                transactions = transactions.filter(date=_date)
+                transactions = transactions.filter(date__year=_date.year, date__month=_date.month)
             except ValueError:
                 messages.error(request, 'Invalid date format')
                 return HttpResponseRedirect(reverse('all_transactions'))
-            transactions = PaymentVoucher.objects.filter(
-                prepared_by__profile__company__name__icontains=request.POST.get('company', "No company"),
+            transactions = transactions.filter(
+                prepared_by__profile__company__in=Company.objects.filter(
+                                    name=request.POST.get('company', f"{request.user.profile.company.first().name}")),
                 pv_id__icontains=request.POST['pv_id'],
                 request_by__icontains=request.POST['request_by'],
                 status__icontains=request.POST['status'],
                 category__name__icontains=request.POST['category'],
-                transaction_type__icontains = request.POST['transaction_type'], 
-                date__year=_date.year, date__month=_date.month, date__day=_date.day
+                transaction_type__icontains=request.POST['transaction_type'], 
             ).order_by("-date")
             if transactions:
-                domain = transactions[0].prepared_by.profile.company
+                domain = transactions[0].prepared_by.profile.company.first().name
         else:
-            transactions = PaymentVoucher.objects.filter(
-                prepared_by__profile__company__name__icontains=request.POST.get('company', "No company"),
-                pv_id__icontains=request.POST['pv_id'],
-                request_by__icontains=request.POST['request_by'],
-                status__icontains=request.POST['status'],
-                category__name__icontains=request.POST['category'],
-                transaction_type__icontains = request.POST['transaction_type']
-            ).order_by("-date")
+            if request.POST.get('company'):
+                transactions = PaymentVoucher.objects.filter(
+                    prepared_by__profile__company__name__icontains=request.POST.get('company'),
+                    pv_id__icontains=request.POST['pv_id'],
+                    request_by__icontains=request.POST['request_by'],
+                    status__icontains=request.POST['status'],
+                    category__name__icontains=request.POST['category'],
+                    transaction_type__icontains=request.POST['transaction_type']
+                ).order_by("-date")
+            else:
+                transactions = PaymentVoucher.objects.filter(
+                    pv_id__icontains=request.POST['pv_id'],
+                    request_by__icontains=request.POST['request_by'],
+                    status__icontains=request.POST['status'],
+                    category__name__icontains=request.POST['category'],
+                    transaction_type__icontains=request.POST['transaction_type']
+                ).order_by("-date")
         if not transactions:
             messages.error(request, "No Entries Available")
         else:
             messages.success(request, "Result generated")
             if transactions:
-                domain = transactions[0].prepared_by.profile.company
+                domain = transactions[0].prepared_by.profile.company.first().name
     page = request.GET.get('page', 1)
     paginator = Paginator(transactions, 8)
 
@@ -808,35 +808,30 @@ def company_dashboard(request):
     ]
     if request.method == 'POST':
         if not request.POST.get('company') and not request.POST.get('date'):
-            messages.error(request, "Please provide some query parameters")
             return HttpResponseRedirect(reverse("company_dashboard"))
         if request.POST.get('company'):
             company = request.POST['company']
         date = request.POST['date']
+        domains = Company.objects.filter(name=company).all()
         if date:
             if request.POST.get('company'):
                 try:
-                    date = date.split('-')
-                except:
-                    messages.error(request, 'Invalid date format')
-                    return HttpResponseRedirect(reverse('company_dashboard'))
-                try:
-                    _date = datetime(int(date[0]), int(date[1]), int(date[2]))
-                except:
+                    _date = datetime.strptime(date, '%Y-%m-%d')
+                except ValueError:
                     messages.error(request, 'Invalid date format')
                     return HttpResponseRedirect(reverse('company_dashboard'))
                 expenses = PaymentVoucher.objects.filter(
-                    prepared_by__profile__company__name__icontains=company,
+                    prepared_by__profile__company__in=domains,
                     transaction_type = "Expense", approved = True,
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    date__year=_date.year, date__month=_date.month,
                 ).all().order_by("-date")
                 page = request.GET.get('page', 1)
                 paginator = Paginator(expenses, 2)
 
                 expense_total_amount_total = PaymentVoucher.objects.filter(
-                    prepared_by__profile__company__icontains=company,
+                    prepared_by__profile__company__name__in=domains,
                     transaction_type = "Expense", approved = True,
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    date__year=_date.year, date__month=_date.month,
                 ).aggregate(Sum('total_amount')).get('total_amount__sum')
 
                 try:
@@ -845,32 +840,32 @@ def company_dashboard(request):
                     paginator = paginator.page(1)
                 
                 incomes = PaymentVoucher.objects.filter(
-                    prepared_by__profile__company__name__icontains=company,
+                    prepared_by__profile__company__in=domains,
                     transaction_type = "Income", approved = True,
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    date__year=_date.year, date__month=_date.month,
                     ).all().order_by("-date")
 
                 incomes_t = PaymentVoucher.objects.filter(
-                    prepared_by__profile__company__name__icontains=company,
+                    prepared_by__profile__company__in=domains,
                     transaction_type = "Income",
                     approved = True,
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    date__year=_date.year, date__month=_date.month,
                     ).all()
                 expenses_t = PaymentVoucher.objects.filter(
-                    prepared_by__profile__company__name__icontains=company,
+                    prepared_by__profile__company__in=domains,
                     approved = True,
                     transaction_type = "Expense",
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    date__year=_date.year, date__month=_date.month,
                     ).all()
                     
                 page = request.GET.get('page', 1)
                 paginator1 = Paginator(incomes, 2)
 
                 income_total_amount_total = PaymentVoucher.objects.filter(
-                    prepared_by__profile__company__name__icontains=company,
+                    prepared_by__profile__company__in=domains,
                     approved = True,
                     transaction_type = "Income",
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    date__year=_date.year, date__month=_date.month,
                 ).aggregate(Sum('total_amount')).get('total_amount__sum')
 
                 try:
@@ -879,45 +874,40 @@ def company_dashboard(request):
                     paginator1 = paginator1.page(1)
 
                 income_categories = Category.objects.filter(
-                    paymentvoucher__prepared_by__profile__company__name__icontains=company,
+                    paymentvoucher__prepared_by__profile__company__in=domains,
                     paymentvoucher__transaction_type = "Income",
                     paymentvoucher__approved = True,
-                    paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month, paymentvoucher__date__day=_date.day,
+                    paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month,
                 ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
                 expense_categories = Category.objects.filter(
                     paymentvoucher__prepared_by__profile__company__name__icontains=company,
                     paymentvoucher__transaction_type = "Expense",
                     paymentvoucher__approved = True,
-                    paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month, paymentvoucher__date__day=_date.day,
+                    paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month,
                 ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
 
                 return render(request, "tracker/company_dashboard.html", {
                     'expenses': paginator, 'expense_total_amount_total': expense_total_amount_total, 'incomes': paginator1, 'companies': companies,
                     'income_total_amount_total': income_total_amount_total, 'incomes_t': incomes_t, 'income_categories': income_categories,
-                    'expenses_t': expenses_t, 'date': timezone.now(), 'expense_categories': expense_categories,
+                    'expenses_t': expenses_t, 'expense_categories': expense_categories,
                     'company': company, 'current_page': 'company_dashboard'
                 })
             else:
                 try:
-                    date = date.split('-')
-                except:
-                    messages.error(request, 'Invalid date format')
-                    return HttpResponseRedirect(reverse('company_dashboard'))
-                try:
-                    _date = datetime(int(date[0]), int(date[1]), int(date[2]))
-                except:
+                    _date = datetime.strptime(date, '%Y-%m-%d')
+                except ValueError:
                     messages.error(request, 'Invalid date format')
                     return HttpResponseRedirect(reverse('company_dashboard'))
                 expenses = PaymentVoucher.objects.filter(
-                    transaction_type = "Expense", approved = True,
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    transaction_type="Expense", approved = True,
+                    date__year=_date.year, date__month=_date.month,
                 ).all().order_by("-date")
                 page = request.GET.get('page', 1)
                 paginator = Paginator(expenses, 2)
 
                 expense_total_amount_total = PaymentVoucher.objects.filter(
                     transaction_type = "Expense", approved = True,
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    date__year=_date.year, date__month=_date.month,
                 ).aggregate(Sum('total_amount')).get('total_amount__sum')
 
                 try:
@@ -926,19 +916,19 @@ def company_dashboard(request):
                     paginator = paginator.page(1)
                 
                 incomes = PaymentVoucher.objects.filter(
-                    transaction_type = "Income", approved = True,
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    transaction_type="Income", approved = True,
+                    date__year=_date.year, date__month=_date.month
                     ).all().order_by("-date")
 
                 incomes_t = PaymentVoucher.objects.filter(
                     transaction_type = "Income",
                     approved = True,
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    date__year=_date.year, date__month=_date.month
                     ).all()
                 expenses_t = PaymentVoucher.objects.filter(
                     approved = True,
                     transaction_type = "Expense",
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    date__year=_date.year, date__month=_date.month
                     ).all()
                     
                 page = request.GET.get('page', 1)
@@ -947,7 +937,7 @@ def company_dashboard(request):
                 income_total_amount_total = PaymentVoucher.objects.filter(
                     approved = True,
                     transaction_type = "Income",
-                    date__year=_date.year, date__month=_date.month, date__day=_date.day,
+                    date__year=_date.year, date__month=_date.month
                 ).aggregate(Sum('total_amount')).get('total_amount__sum')
 
                 try:
@@ -958,31 +948,31 @@ def company_dashboard(request):
                 income_categories = Category.objects.filter(
                     paymentvoucher__transaction_type = "Income",
                     paymentvoucher__approved = True,
-                    paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month, paymentvoucher__date__day=_date.day,
+                    paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month
                 ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
                 expense_categories = Category.objects.filter(
                     paymentvoucher__transaction_type = "Expense",
                     paymentvoucher__approved = True,
-                    paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month, paymentvoucher__date__day=_date.day,
+                    paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month
                 ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
 
                 return render(request, "tracker/company_dashboard.html", {
                     'expenses': paginator, 'expense_total_amount_total': expense_total_amount_total, 'incomes': paginator1, 'companies': companies,
                     'income_total_amount_total': income_total_amount_total, 'incomes_t': incomes_t, 'income_categories': income_categories,
-                    'expenses_t': expenses_t, 'date': timezone.now(), 'expense_categories': expense_categories,
+                    'expenses_t': expenses_t, 'expense_categories': expense_categories,
                     'company': company, 'current_page': 'company_dashboard'
                 })
         else:
             expenses = PaymentVoucher.objects.filter(
-                prepared_by__profile__company__name__icontains=company,
-                transaction_type = "Expense", approved = True,
+                prepared_by__profile__company__in=domains,
+                transaction_type="Expense", approved = True,
             ).all().order_by("-date")
             page = request.GET.get('page', 1)
             paginator = Paginator(expenses, 2)
 
             expense_total_amount_total = PaymentVoucher.objects.filter(
-                prepared_by__profile__company__name__icontains=company,
-                transaction_type = "Expense", approved = True,
+                prepared_by__profile__company__in=domains,
+                transaction_type="Expense", approved = True,
             ).aggregate(Sum('total_amount')).get('total_amount__sum')
 
             try:
@@ -991,17 +981,17 @@ def company_dashboard(request):
                 paginator = paginator.page(1)
 
             incomes = PaymentVoucher.objects.filter(
-                prepared_by__profile__company__name__icontains=company,
-                transaction_type = "Income", approved = True,
+                prepared_by__profile__company__in=domains,
+                transaction_type="Income", approved = True,
                 ).all().order_by("-date")
 
             incomes_t = PaymentVoucher.objects.filter(
-                prepared_by__profile__company__name__icontains=company,
-                transaction_type = "Income",
+                prepared_by__profile__company__in=domains,
+                transaction_type="Income",
                 approved=True,
             ).all()
             expenses_t = PaymentVoucher.objects.filter(
-                prepared_by__profile__company__name__icontains=company,
+                prepared_by__profile__company__in=domains,
                 approved=True,
                 transaction_type = "Expense",
             ).all()
@@ -1009,7 +999,7 @@ def company_dashboard(request):
             paginator1 = Paginator(incomes, 2)
 
             income_total_amount_total = PaymentVoucher.objects.filter(
-                prepared_by__profile__company__name__icontains=company,
+                prepared_by__profile__company__in=domains,
                 approved = True,
                 transaction_type = "Income",
             ).aggregate(Sum('total_amount')).get('total_amount__sum')
@@ -1020,12 +1010,12 @@ def company_dashboard(request):
                 paginator1 = paginator1.page(1)
 
             income_categories = Category.objects.filter(
-                paymentvoucher__prepared_by__profile__company__name__icontains=company,
+                paymentvoucher__prepared_by__profile__company__in=domains,
                 paymentvoucher__transaction_type = "Income",
                 paymentvoucher__approved = True,
             ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
             expense_categories = Category.objects.filter(
-                paymentvoucher__prepared_by__profile__company__name__icontains=company,
+                paymentvoucher__prepared_by__profile__company__in=domains,
                 paymentvoucher__transaction_type = "Expense",
                 paymentvoucher__approved = True,
             ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
@@ -1033,17 +1023,17 @@ def company_dashboard(request):
             return render(request, "tracker/company_dashboard.html", {
                 'expenses': paginator, 'expense_total_amount_total': expense_total_amount_total, 'incomes': paginator1, 'companies': companies,
                 'income_total_amount_total': income_total_amount_total, 'incomes_t': incomes_t, 'income_categories': income_categories,
-                'expenses_t': expenses_t, 'date': timezone.now(), 'expense_categories': expense_categories,
+                'expenses_t': expenses_t, 'expense_categories': expense_categories,
                 'company': company, 'current_page': 'company_dashboard'
             })
     expenses = PaymentVoucher.objects.filter(
-        transaction_type = "Expense", approved=True,
+        transaction_type="Expense", approved=True,
     ).all().order_by("-date")
     page = request.GET.get('page', 1)
     paginator = Paginator(expenses, 2)
 
     expense_total_amount_total = PaymentVoucher.objects.filter(
-        transaction_type = "Expense", approved=True,
+        transaction_type="Expense", approved=True,
     ).aggregate(Sum('total_amount')).get('total_amount__sum')
 
     try:
@@ -1052,21 +1042,21 @@ def company_dashboard(request):
         paginator = paginator.page(1)
 
     incomes = PaymentVoucher.objects.filter(
-        transaction_type = "Income", approved=True,
+        transaction_type="Income", approved=True,
         ).all().order_by("-date")
 
     incomes_t = PaymentVoucher.objects.filter(
-        transaction_type = "Income", approved=True,
+        transaction_type="Income", approved=True,
     ).all()
     expenses_t = PaymentVoucher.objects.filter(
-        transaction_type = "Expense", approved=True,
+        transaction_type="Expense", approved=True,
     ).all()
         
     page = request.GET.get('page', 1)
     paginator1 = Paginator(incomes, 2)
 
     income_total_amount_total = PaymentVoucher.objects.filter(
-        transaction_type = "Income", approved=True,
+        transaction_type="Income", approved=True,
     ).aggregate(Sum('total_amount')).get('total_amount__sum')
 
     try:
@@ -1088,7 +1078,7 @@ def company_dashboard(request):
     return render(request, "tracker/company_dashboard.html", {
         'expenses': paginator, 'expense_total_amount_total': expense_total_amount_total, 'incomes': paginator1, 'companies': companies,
         'income_total_amount_total': income_total_amount_total, 'incomes_t': incomes_t, 'income_categories': income_categories,
-        'expenses_t': expenses_t, 'date': timezone.now(), 'expense_categories': expense_categories,
+        'expenses_t': expenses_t, 'expense_categories': expense_categories,
         'company': company, 'current_page': 'company_dashboard'
     })
 
@@ -1098,7 +1088,7 @@ def company_leaderboard(request):
         raise PermissionDenied()
     # Forex
     yfeb_total_income_amounts = PaymentVoucher.objects.filter(
-        prepared_by__profile__company__name="Yonna Foreign Exchange Bureau",
+        prepared_by__profile__company__name__icontains="Yonna Foreign Exchange Bureau",
         transaction_type="Income", approved=True
     ).aggregate(Sum('total_amount')).get('total_amount__sum')
     yfeb_total_expense_amounts = PaymentVoucher.objects.filter(

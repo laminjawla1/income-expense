@@ -7,7 +7,7 @@
     text-align: center;
   }
 </style>
-<div class="row">
+<div class="row mt-1">
   <div class="col-md-12">
     <form method="post" class="d-flex" role="search">
       {% csrf_token %}
@@ -83,7 +83,7 @@
         {% endfor %}
     </tbody>
     </table>
-    <h4 style="text-align: center; color: aliceblue;" class="bg-dark">{{  user.profile.company }} Common Financial Statement</h4>
+    <h4 style="text-align: center; color: aliceblue;" class="bg-dark">{{  user.profile.company.first }} Common Financial Statement</h4>
     <table class="table table-striped table-bordered table-success table-responsive-lg">
         <thead class="thead-dark">
         <tr>
