@@ -1093,7 +1093,7 @@ def company_leaderboard(request):
     yfeb_total_income_amounts = PaymentVoucher.objects.filter(
         prepared_by__profile__company__name__icontains="Yonna Foreign Exchange Bureau",
         transaction_type="Income", approved=True
-    ).aggregate(Sum('total_amount')).get('total_amount__sum')
+    ).aggregate(Sum('total_amount')).get('total_amount__sum') or 0
     yfeb_total_expense_amounts = PaymentVoucher.objects.filter(
         prepared_by__profile__company__name="Yonna Foreign Exchange Bureau",
         transaction_type="Expense", approved=True
