@@ -231,6 +231,7 @@ Best regards,
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.fields['status'].choices = [("Audit Level", "Audit Level")]
+        form.fields['date'].type = 'date'
         return form
 
 class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
