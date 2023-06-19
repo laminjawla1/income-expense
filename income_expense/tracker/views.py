@@ -114,7 +114,7 @@ def transactions(request):
 class Transact(LoginRequiredMixin, CreateView):
     model = PaymentVoucher
     template_name = "tracker/transact_form.html"
-    fields = ['request_by', 'transaction_type',
+    fields = ['date', 'request_by', 'transaction_type',
             'item_one', 'item_one_quantity', 'item_one_unit_price', 'item_one_total_price',
             'item_two', 'item_two_quantity', 'item_two_unit_price', 'item_two_total_price',
             'item_three', 'item_three_quantity', 'item_three_unit_price', 'item_three_total_price',
@@ -236,7 +236,7 @@ Best regards,
 class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = PaymentVoucher
     template_name = "tracker/transact_update_form.html"
-    fields = ['request_by', 'transaction_type', 'payee', 
+    fields = ['date', 'request_by', 'transaction_type', 'payee', 
                 'payment_method', 'cheque_number', 'account_number', 'bank_name',
                 'item_one', 'item_one_quantity', 'item_one_unit_price', 'item_one_total_price',
                 'item_two', 'item_two_quantity', 'item_two_unit_price', 'item_two_total_price',
