@@ -125,7 +125,7 @@
                         {% else %}
                             <a style="color: red" class="nav-item nav-link active">Balance: D{{user.profile.company.first.limit|floatformat:2|intcomma}}</a>
                         {% endif %}
-                    <a style="color: rgb(13, 159, 13);" class="nav-item nav-link active" href="{% url 'profile' %}">Welcome, {{user.first_name}} {{user.last_name}}!</a>
+                    <a style="color: rgb(13, 159, 13);" class="nav-item nav-link active" href="{% url 'profile' %}">Welcome, {{user.first_name}}!</a>
                     {% if current_page == "profile" %}
                         <a class="nav-item nav-link active" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
                     {% else %}
