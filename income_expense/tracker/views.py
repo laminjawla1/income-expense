@@ -16,6 +16,7 @@ from .utils import gmd
 import os
 import inflect
 from django.contrib.auth.models import User
+from django import forms
 
 @login_required
 def dashboard(request):
@@ -231,7 +232,7 @@ Best regards,
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.fields['status'].choices = [("Audit Level", "Audit Level")]
-        form.fields['date'].type = 'date'
+        form.fields['date'].widget=forms.DateInput(attrs={'type': 'date'})
         return form
 
 class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -321,6 +322,10 @@ class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         context['recents'] = transactions
         context['current_page'] = 'transactions'
         return context
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['date'].widget=forms.DateInput(attrs={'type': 'date'})
+        return form
 
 @login_required
 def summary(request):
