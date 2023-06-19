@@ -690,6 +690,8 @@ def all_transactions(request):
     domain = "Yonna Group"
     transactions = PaymentVoucher.objects.order_by("-date", "prepared_by").all()
     if request.method == 'POST':
+        if request.POST.get('company'):
+            return HttpResponseRedirect(reverse('company_transactions', args=(request.POST.get('company'),)))
         date = request.POST.get('date')
         if date:
             try:
@@ -762,6 +764,95 @@ def all_transactions(request):
     profit = income_amount - expense_amount
 
     return render(request, "tracker/all_transactions.html", {
+        'transactions': paginator, 'total_amount_total': total_amount_total, 'comapanies': comapanies, 'current_page': 'all_transactions',
+        'income_amount': income_amount, 'expense_amount': expense_amount, 'profit': profit, 'domain': domain
+    })
+
+@login_required
+def company_transactions(request, company):
+    comapanies = [
+        "Yonna Foreign Exchange Bureau",
+        "Yonna Islamic Microfinance",
+        "Yonna Enterprise",
+        "Yonna Insurance",
+    ]
+    domain = company
+    transactions = PaymentVoucher.objects.filter(
+            prepared_by__profile__company__in=Company.objects.filter(name=company),
+    ).order_by("-date", "prepared_by").all()
+    if request.method == 'POST':
+        date = request.POST.get('date')
+        if date:
+            try:
+                _date = datetime.strptime(date, '%Y-%m-%d')
+                transactions = transactions.filter(date__year=_date.year, date__month=_date.month)
+            except ValueError:
+                messages.error(request, 'Invalid date format')
+                return HttpResponseRedirect(reverse('all_transactions'))
+            transactions = transactions.filter(
+                prepared_by__profile__company__in=Company.objects.filter(
+                                    name=request.POST.get('company', f"{request.user.profile.company.first().name}")),
+                pv_id__icontains=request.POST['pv_id'],
+                request_by__icontains=request.POST['request_by'],
+                status__icontains=request.POST['status'],
+                category__name__icontains=request.POST['category'],
+                transaction_type__icontains=request.POST['transaction_type'], 
+            ).order_by("-date")
+            if transactions:
+                domain = transactions[0].prepared_by.profile.company.first().name
+        else:
+            if request.POST.get('company'):
+                transactions = PaymentVoucher.objects.filter(
+                    prepared_by__profile__company__name__icontains=request.POST.get('company'),
+                    pv_id__icontains=request.POST['pv_id'],
+                    request_by__icontains=request.POST['request_by'],
+                    status__icontains=request.POST['status'],
+                    category__name__icontains=request.POST['category'],
+                    transaction_type__icontains=request.POST['transaction_type']
+                ).order_by("-date")
+            else:
+                transactions = PaymentVoucher.objects.filter(
+                    pv_id__icontains=request.POST['pv_id'],
+                    request_by__icontains=request.POST['request_by'],
+                    status__icontains=request.POST['status'],
+                    category__name__icontains=request.POST['category'],
+                    transaction_type__icontains=request.POST['transaction_type']
+                ).order_by("-date")
+        if not transactions:
+            messages.error(request, "No Entries Available")
+        else:
+            messages.success(request, "Result generated")
+            if transactions:
+                domain = transactions[0].prepared_by.profile.company.first().name
+    page = request.GET.get('page', 1)
+    paginator = Paginator(transactions, 8)
+
+    total_amount_total = transactions.filter(approved=True).aggregate(Sum('total_amount')).get('total_amount__sum')
+
+
+    try:
+        paginator = paginator.page(page)
+    except:
+        paginator = paginator.page(1)
+
+    income_amount = 0
+    expense_amount = 0
+
+    income_amount = transactions.filter(
+        transaction_type="Income"
+    ).aggregate(Sum('total_amount')).get('total_amount__sum')
+    expense_amount = transactions.filter(
+        transaction_type="Expense"
+    ).aggregate(Sum('total_amount')).get('total_amount__sum')
+
+    if not income_amount:
+        income_amount = 0
+    if not expense_amount:
+        expense_amount = 0
+
+    profit = income_amount - expense_amount
+
+    return render(request, "tracker/company_transactions.html", {
         'transactions': paginator, 'total_amount_total': total_amount_total, 'comapanies': comapanies, 'current_page': 'all_transactions',
         'income_amount': income_amount, 'expense_amount': expense_amount, 'profit': profit, 'domain': domain
     })
