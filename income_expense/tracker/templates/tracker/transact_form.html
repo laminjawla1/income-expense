@@ -12,6 +12,9 @@
                     <legend class="border-bottom mb-4">{{legend}}</legend>
                     <div class="form-row">
                         <div class="form-group col-md-12">
+                          {{ form.date|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-12">
                           {{ form.request_by|as_crispy_field }}
                         </div>
                     </div>
