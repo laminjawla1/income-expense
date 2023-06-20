@@ -38,7 +38,7 @@
             <tbody>
                 {% for income in incomes %}
                 <tr>
-                    <td><a type="payroll" href="{% url 'render_pv' income.id}">{{income.category}}</a></td>
+                    <td><a type="payroll" href="{% url 'render_pv' income.id %}">{{income.category}}</a></td>
                     <td style="text-align: center;">{{income.pv_id}}</td>
                     <td>{{income.total_amount|floatformat:2|intcomma}}</td>
                 </tr>
@@ -82,7 +82,7 @@
             <tbody>
                 {% for expense in expenses %}
                 <tr>
-                    <td><a type="payroll" href="{% url 'render_pv' expense.id}">{{expense.category}}</a></td>
+                    <td><a type="payroll" href="{% url 'render_pv' expense.id %}">{{expense.category}}</a></td>
                     <td style="text-align: center;">{{expense.pv_id}}</td>
                     <td>{{expense.total_amount|floatformat:2|intcomma}}</td>
                 </tr>
