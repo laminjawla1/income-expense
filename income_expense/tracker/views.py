@@ -125,11 +125,10 @@ def transactions(request):
 
                                     w.category.name, w.status, w.payment_method, w.date, w.description])
                 except:
-                    if not items:
-                        messages.error(request, "An error occured while processing the request. \
-                                       It seems looks like this transaction has not been reviewed,\
-                                        verified or approved. If that's so, please inform the right people responsible for that")
-                        return HttpResponseRedirect(reverse("transactions"))
+                    messages.error(request, "An error occured while processing the request. \
+                                    It seems looks like this transaction has not been reviewed,\
+                                    verified or approved. If that's so, please inform the right people responsible for that")
+                    return HttpResponseRedirect(reverse("transactions"))
             return response
         date = request.POST.get('date')
         if date:
@@ -841,11 +840,10 @@ def all_transactions(request):
 
                                     w.category.name, w.status, w.payment_method, w.date, w.description])
                 except:
-                    if not items:
-                        messages.error(request, "An error occured while processing the request. \
-                                       It seems looks like this transaction has not been reviewed,\
-                                        verified or approved. If that's so, please inform the right people responsible for that")
-                        return HttpResponseRedirect(reverse("transactions"))
+                    messages.error(request, "An error occured while processing the request. \
+                                    It seems looks like this transaction has not been reviewed,\
+                                    verified or approved. If that's so, please inform the right people responsible for that")
+                    return HttpResponseRedirect(reverse("transactions"))
             return response
 
         if request.POST.get('company'):
