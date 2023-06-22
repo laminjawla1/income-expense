@@ -107,22 +107,29 @@ def transactions(request):
                     n_items += 1
                 if w.item_ten:
                     n_items += 1
-                writer.writerow([w.pv_id, w.transaction_type, w.request_by, f'{w.prepared_by.first_name} {w.prepared_by.last_name}', 
-                                f'{w.reviewed_by.first_name} {w.reviewed_by.last_name}',
-                                f'{w.verified_by.first_name} {w.verified_by.last_name}', 
-                                f'{w.approved_by.first_name} {w.approved_by.last_name}', w.payee, w.cheque_number,
-                                w.account_number, w.bank_name, n_items,
+                try:
+                    writer.writerow([w.pv_id, w.transaction_type, w.request_by, f'{w.prepared_by.first_name} {w.prepared_by.last_name}', 
+                                    f'{w.reviewed_by.first_name} {w.reviewed_by.last_name}',
+                                    f'{w.verified_by.first_name} {w.verified_by.last_name}', 
+                                    f'{w.approved_by.first_name} {w.approved_by.last_name}', w.payee, w.cheque_number,
+                                    w.account_number, w.bank_name, n_items,
 
-                                (w.item_one_quantity + w.item_two_quantity + w.item_three_quantity + w.item_four_quantity +
-                                w.item_five_quantity + w.item_six_quantity + w.item_seven_quantity + w.item_eight_quantity + w.item_nine_quantity + w.item_ten_quantity),
+                                    (w.item_one_quantity + w.item_two_quantity + w.item_three_quantity + w.item_four_quantity +
+                                    w.item_five_quantity + w.item_six_quantity + w.item_seven_quantity + w.item_eight_quantity + w.item_nine_quantity + w.item_ten_quantity),
 
-                                (w.item_one_unit_price + w.item_two_unit_price + w.item_three_unit_price + w.item_four_unit_price +
-                                w.item_five_unit_price + w.item_six_unit_price + w.item_seven_unit_price + w.item_eight_unit_price + w.item_nine_unit_price + w.item_ten_unit_price),
+                                    (w.item_one_unit_price + w.item_two_unit_price + w.item_three_unit_price + w.item_four_unit_price +
+                                    w.item_five_unit_price + w.item_six_unit_price + w.item_seven_unit_price + w.item_eight_unit_price + w.item_nine_unit_price + w.item_ten_unit_price),
 
-                                (w.item_one_total_price + w.item_two_total_price + w.item_three_total_price + w.item_four_total_price +
-                                w.item_five_total_price + w.item_six_total_price + w.item_seven_total_price + w.item_eight_total_price + w.item_nine_total_price + w.item_ten_total_price),
+                                    (w.item_one_total_price + w.item_two_total_price + w.item_three_total_price + w.item_four_total_price +
+                                    w.item_five_total_price + w.item_six_total_price + w.item_seven_total_price + w.item_eight_total_price + w.item_nine_total_price + w.item_ten_total_price),
 
-                                w.category.name, w.status, w.payment_method, w.date, w.description])
+                                    w.category.name, w.status, w.payment_method, w.date, w.description])
+                except:
+                    if not items:
+                        messages.error(request, "An error occured while processing the request. \
+                                       It seems looks like this transaction has not been reviewed,\
+                                        verified or approved. If that's so, please inform the right people responsible for that")
+                        return HttpResponseRedirect(reverse("transactions"))
             return response
         date = request.POST.get('date')
         if date:
@@ -767,7 +774,6 @@ def all_transactions(request):
             to_date = request.POST.get('to_date')
             from_company = request.POST.get('from_company')
             filename = f"yonna_group_transactions_{from_date}_to_{to_date}.csv"
-            print(f"From Company: {from_company}")
             if from_company:
                 items = PaymentVoucher.objects.filter(
                     prepared_by__profile__company__in=Company.objects.filter(name=from_company),
@@ -816,23 +822,30 @@ def all_transactions(request):
                     n_items += 1
                 if w.item_ten:
                     n_items += 1
-                writer.writerow([w.prepared_by.profile.company.first().name, w.pv_id, w.transaction_type, w.request_by,
-                                f'{w.prepared_by.first_name} {w.prepared_by.last_name}', 
-                                f'{w.reviewed_by.first_name} {w.reviewed_by.last_name}',
-                                f'{w.verified_by.first_name} {w.verified_by.last_name}', 
-                                f'{w.approved_by.first_name} {w.approved_by.last_name}', w.payee, w.cheque_number,
-                                w.account_number, w.bank_name, n_items,
+                try:
+                    writer.writerow([w.prepared_by.profile.company.first().name, w.pv_id, w.transaction_type, w.request_by,
+                                    f'{w.prepared_by.first_name} {w.prepared_by.last_name}', 
+                                    f'{w.reviewed_by.first_name} {w.reviewed_by.last_name}',
+                                    f'{w.verified_by.first_name} {w.verified_by.last_name}', 
+                                    f'{w.approved_by.first_name} {w.approved_by.last_name}', w.payee, w.cheque_number,
+                                    w.account_number, w.bank_name, n_items,
 
-                                (w.item_one_quantity + w.item_two_quantity + w.item_three_quantity + w.item_four_quantity +
-                                w.item_five_quantity + w.item_six_quantity + w.item_seven_quantity + w.item_eight_quantity + w.item_nine_quantity + w.item_ten_quantity),
+                                    (w.item_one_quantity + w.item_two_quantity + w.item_three_quantity + w.item_four_quantity +
+                                    w.item_five_quantity + w.item_six_quantity + w.item_seven_quantity + w.item_eight_quantity + w.item_nine_quantity + w.item_ten_quantity),
 
-                                (w.item_one_unit_price + w.item_two_unit_price + w.item_three_unit_price + w.item_four_unit_price +
-                                w.item_five_unit_price + w.item_six_unit_price + w.item_seven_unit_price + w.item_eight_unit_price + w.item_nine_unit_price + w.item_ten_unit_price),
+                                    (w.item_one_unit_price + w.item_two_unit_price + w.item_three_unit_price + w.item_four_unit_price +
+                                    w.item_five_unit_price + w.item_six_unit_price + w.item_seven_unit_price + w.item_eight_unit_price + w.item_nine_unit_price + w.item_ten_unit_price),
 
-                                (w.item_one_total_price + w.item_two_total_price + w.item_three_total_price + w.item_four_total_price +
-                                w.item_five_total_price + w.item_six_total_price + w.item_seven_total_price + w.item_eight_total_price + w.item_nine_total_price + w.item_ten_total_price),
+                                    (w.item_one_total_price + w.item_two_total_price + w.item_three_total_price + w.item_four_total_price +
+                                    w.item_five_total_price + w.item_six_total_price + w.item_seven_total_price + w.item_eight_total_price + w.item_nine_total_price + w.item_ten_total_price),
 
-                                w.category.name, w.status, w.payment_method, w.date, w.description])
+                                    w.category.name, w.status, w.payment_method, w.date, w.description])
+                except:
+                    if not items:
+                        messages.error(request, "An error occured while processing the request. \
+                                       It seems looks like this transaction has not been reviewed,\
+                                        verified or approved. If that's so, please inform the right people responsible for that")
+                        return HttpResponseRedirect(reverse("transactions"))
             return response
 
         if request.POST.get('company'):
