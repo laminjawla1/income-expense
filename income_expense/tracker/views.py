@@ -125,7 +125,7 @@ def transactions(request):
 
                                     w.category.name, w.status, w.payment_method, w.date, w.description])
                 except:
-                    messages.error(request, "An error occured while processing the request. \
+                    messages.warning(request, "An error occured while processing the request. \
                                     It seems like the selected transactions has not been reviewed,\
                                     verified or approved. If that's so, please inform the right people responsible for that")
                     return HttpResponseRedirect(reverse("transactions"))
@@ -840,7 +840,7 @@ def all_transactions(request):
 
                                     w.category.name, w.status, w.payment_method, w.date, w.description])
                 except:
-                    messages.error(request, "An error occured while processing the request. \
+                    messages.warning(request, "An error occured while processing the request. \
                                     It seems like the selected transactions has not been reviewed,\
                                     verified or approved. If that's so, please inform the right people responsible for that")
                     return HttpResponseRedirect(reverse("transactions"))
