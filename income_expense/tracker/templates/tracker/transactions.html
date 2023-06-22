@@ -12,6 +12,24 @@
     <form method="post" class="d-flex" role="search">
       {% csrf_token %}
       <div class="form-row">
+        <div class="form-group col-md-3">
+          <input class="form-control me-2" placeholder="From" type="text" name="from_date" onfocus="(this.type='date')" onfocusout="(this.type='text')" required>
+        </div>
+        <div class="form-group col-md-3">
+          <input class="form-control me-2" placeholder="To" type="text" name="to_date" onfocus="(this.type='date')" onfocusout="(this.type='text')" required>
+        </div>
+          <div class="form-group col-md-4">
+            <button class="btn btn-success text-align-center" type="submit">Download</button>
+          </div>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="row mt-1">
+  <div class="col-md-12">
+    <form method="post" class="d-flex" role="search">
+      {% csrf_token %}
+      <div class="form-row">
           <div class="form-group col-md-1">
               <input name="pv_id" id="pv_id" class="form-control me-2" type="search" placeholder="PV ID" aria-label="Search">
           </div>
