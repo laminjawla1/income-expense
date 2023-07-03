@@ -11,10 +11,10 @@
                 <fieldset class="form-group">
                     <legend class="border-bottom mb-4">{{legend}}</legend>
                     <div class="form-row">
-                        <div class="form-group col-md-12">
+                        <div class="form-group col-md-6">
                           {{ form.date|as_crispy_field }}
                         </div>
-                        <div class="form-group col-md-12">
+                        <div class="form-group col-md-6">
                           {{ form.request_by|as_crispy_field }}
                         </div>
                     </div>
@@ -177,6 +177,11 @@
                   <div class="form-row">
                     <div class="form-group col-md-12">
                       {{ form.description|as_crispy_field }}
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group col-md-12">
+                      {{ form.is_admin_expense|as_crispy_field }}
                     </div>
                   </div>
                 </fieldset>

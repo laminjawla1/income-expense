@@ -182,10 +182,71 @@ def transactions(request):
         'profit': profit, 'company_balance': request.user.profile.company.first().limit
     })
 
+@login_required
+def admin_expense(request):
+    transactions = PaymentVoucher.objects.filter(
+        prepared_by__profile__company__in=request.user.profile.company.all(),
+        date__year=timezone.now().year, date__month=timezone.now().month,
+        is_admin_expense=True
+    ).order_by("-pv_id")
+
+    if request.method == 'POST':
+        date = request.POST.get('date')
+        if date:
+            try:
+                _date = datetime.strptime(date, '%Y-%m-%d')
+                transactions = PaymentVoucher.objects.filter(
+                    prepared_by__profile__company__in=request.user.profile.company.all(),
+                    date__year=_date.year, date__month=_date.month, is_admin_expense=True)
+            except ValueError:
+                messages.error(request, 'Invalid date format')
+                return HttpResponseRedirect(reverse('transactions'))
+
+        transactions = transactions.filter(
+            pv_id__icontains=request.POST.get('pv_id', ""),
+            prepared_by__first_name__icontains=request.POST.get('prepared_by', ""),
+            request_by__icontains=request.POST.get('request_by', ""),
+            status__icontains=request.POST.get('status', ""),
+            category__name__icontains=request.POST.get('category', ""),
+            transaction_type__icontains=request.POST.get('transaction_type', "")
+        )
+
+        if not transactions:
+            messages.error(request, "No Entries Available")
+
+    if request.method == "GET":
+        paginator = Paginator(transactions, 6)
+        page = request.GET.get('page', 1)
+
+        try:
+            paginator_page = paginator.page(page)
+        except:
+            paginator_page = paginator.page(1)
+    else:
+        paginator_page = transactions
+
+    income_amount = transactions.filter(
+        transaction_type="Income",
+        approved=True
+    ).aggregate(total_amount_sum=Sum('total_amount'))['total_amount_sum'] or 0
+
+    expense_amount = transactions.filter(
+        transaction_type="Expense",
+        approved=True
+    ).aggregate(total_amount_sum=Sum('total_amount'))['total_amount_sum'] or 0
+
+    profit = income_amount - expense_amount
+
+    return render(request, "tracker/admin_expense.html", {
+        'transactions': paginator_page, 'current_page': 'admin_expense',
+        'income_amount': income_amount, 'expense_amount': expense_amount,
+        'profit': profit, 'company_balance': request.user.profile.company.first().limit
+    })
+
 class Transact(LoginRequiredMixin, CreateView):
     model = PaymentVoucher
     template_name = "tracker/transact_form.html"
-    fields = ['date', 'request_by', 'transaction_type',
+    fields = ['date', 'request_by', 'transaction_type', 'is_admin_expense',
             'item_one', 'item_one_quantity', 'item_one_unit_price', 'item_one_total_price',
             'item_two', 'item_two_quantity', 'item_two_unit_price', 'item_two_total_price',
             'item_three', 'item_three_quantity', 'item_three_unit_price', 'item_three_total_price',
@@ -246,40 +307,41 @@ class Transact(LoginRequiredMixin, CreateView):
             form.instance.item_ten_total_price = form.instance.item_ten_quantity * form.instance.item_ten_unit_price
             form.instance.total_amount += form.instance.item_ten_total_price
         
-        if form.instance.transaction_type == 'Expense':
+        if form.instance.transaction_type == 'Expense' and not form.instance.is_admin_expense:
             if not self.request.user.profile.company.first().limit - form.instance.total_amount >= 0:
                 messages.error(self.request, f"The balance of {self.request.user.profile.company.first()} is \
                                {gmd(self.request.user.profile.company.first().limit)}. Not sufficient to make this expense")
                 return HttpResponseRedirect(reverse("transact"))
 
-        auditor = User.objects.filter(profile__company__in=self.request.user.profile.company.all(), profile__title="Auditor").first()
-        send_mail(
-            f' New Transaction Recorded - [{form.instance.transaction_type}]',
+        auditors = User.objects.filter(profile__company__in=self.request.user.profile.company.all(), profile__title="Auditor").all()
+        for auditor in auditors:
+            send_mail(
+                f' New Transaction Recorded - [{form.instance.transaction_type}]',
 
-            
-            f"""Dear {auditor.first_name} {auditor.last_name},
+                
+                f"""Dear {auditor.first_name} {auditor.last_name},
 
-I hope this email finds you well. I would like to inform you that a new transaction has been recorded in our financial system. The details of the transaction are as follows:
+    I hope this email finds you well. I would like to inform you that a new transaction has been recorded in our financial system. The details of the transaction are as follows:
 
-Type: {form.instance.transaction_type}
-Request By: {form.instance.request_by}
-Date: {form.instance.date.strftime('%Y-%m-%d')}
-Amount: {gmd(form.instance.total_amount)}
-Category: {form.instance.category}
+    Type: {form.instance.transaction_type}
+    Request By: {form.instance.request_by}
+    Date: {form.instance.date.strftime('%Y-%m-%d')}
+    Amount: {gmd(form.instance.total_amount)}
+    Category: {form.instance.category}
 
-Description: {form.instance.description}
+    Description: {form.instance.description}
 
-Please review the transaction at your earliest convenience and ensure its accuracy. If you have any questions or require additional information, please don't hesitate to reach out to me.
+    Please review the transaction at your earliest convenience and ensure its accuracy. If you have any questions or require additional information, please don't hesitate to reach out to me.
 
-Thank you for your attention to this matter.
+    Thank you for your attention to this matter.
 
-Best regards,
-{form.instance.prepared_by.first_name} {form.instance.prepared_by.last_name}
-{form.instance.prepared_by.profile.title} - {form.instance.prepared_by.profile.company.first}""", 
-            'yonnatech.g@gmail.com',
-            [ auditor.email],
-            fail_silently=False,
-        )
+    Best regards,
+    {form.instance.prepared_by.first_name} {form.instance.prepared_by.last_name}
+    {form.instance.prepared_by.profile.title} - {form.instance.prepared_by.profile.company.first}""", 
+                'yonnatech.g@gmail.com',
+                [ auditor.email],
+                fail_silently=False,
+            )
         messages.success(self.request, f"New {form.instance.transaction_type} added successfully 😊")
         return super().form_valid(form)
 
@@ -669,32 +731,33 @@ Sincerely,
                 messages.error(request, 'Please leave a message')
                 return HttpResponseRedirect(reverse('render_pv', args=[pv_id]))
         elif status == "Audit Level" and request.user.profile.title == "Accountant":
-            auditor = User.objects.filter(profile__company__in=request.user.profile.company.all(), profile__title="Auditor").first()
-            send_mail(
-            f'Request for Transaction Update - [{pv.pv_id}]',
-            
-            f"""Dear {auditor.first_name} {auditor.last_name},
+            auditors = User.objects.filter(profile__company__in=request.user.profile.company.all(), profile__title="Auditor").all()
+            for auditor in auditors:
+                send_mail(
+                f'Request for Transaction Update - [{pv.pv_id}]',
+                
+                f"""Dear {auditor.first_name} {auditor.last_name},
 
-{email_message}
+    {email_message}
 
-Details:
+    Details:
 
-Transaction ID: [{pv.pv_id}]
-Type: {pv.transaction_type}
-Request By: {pv.request_by}
-Date: {pv.date.strftime('%Y-%m-%d')}
-Amount: {gmd(pv.total_amount)}
-Category: {pv.category}
+    Transaction ID: [{pv.pv_id}]
+    Type: {pv.transaction_type}
+    Request By: {pv.request_by}
+    Date: {pv.date.strftime('%Y-%m-%d')}
+    Amount: {gmd(pv.total_amount)}
+    Category: {pv.category}
 
-Description: {pv.description}
+    Description: {pv.description}
 
-Best regards,
-{pv.prepared_by.first_name} {pv.prepared_by.last_name}
-{pv.prepared_by.profile.title} - {pv.prepared_by.profile.company.first()}""", 
-            'yonnatech.g@gmail.com',
-            [auditor.email],
-            fail_silently=False,
-        )
+    Best regards,
+    {pv.prepared_by.first_name} {pv.prepared_by.last_name}
+    {pv.prepared_by.profile.title} - {pv.prepared_by.profile.company.first()}""", 
+                'yonnatech.g@gmail.com',
+                [auditor.email],
+                fail_silently=False,
+            )
         if request.user.is_staff:
             if status == "Management Level":
                 if email_message:
@@ -711,9 +774,8 @@ Best regards,
                     return HttpResponseRedirect(reverse('render_pv', args=[pv_id]))
         if request.user.is_staff:
             if status == "Approved":
-                    if pv.transaction_type == 'Expense':
+                    if pv.transaction_type == 'Expense' and not pv.is_admin_expense:
                         company = pv.prepared_by.profile.company.first()
-                        print(f"Company: {company}")
                         if company.limit - pv.total_amount >= 0:
                             company.limit -= pv.total_amount
                             company.save()

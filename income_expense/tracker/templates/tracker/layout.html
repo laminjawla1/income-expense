@@ -115,6 +115,11 @@
                         {% else %}
                             <a class="nav-item nav-link" href="{% url 'summary' %}">Summary</a>
                         {% endif %}
+                        {% if current_page == "admin_expense" %}
+                            <a class="nav-item nav-link active" href="{% url 'admin_expense' %}">Admin Expense</a>
+                        {% else %}
+                            <a class="nav-item nav-link" href="{% url 'admin_expense' %}">Admin Expense</a>
+                        {% endif %}
                         
                     </div>
                     <!-- Navbar Right Side -->
@@ -125,8 +130,6 @@
                         {% else %}
                             <a style="color: red" class="nav-item nav-link active">Balance: D{{company_balance|floatformat:2|intcomma}}</a>
                         {% endif %}
-
-                    <a style="color: rgb(13, 159, 13);" class="nav-item nav-link active" href="{% url 'profile' %}">Welcome, {{user.first_name}}!</a>
                     {% if current_page == "profile" %}
                         <a class="nav-item nav-link active" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
                     {% else %}

@@ -114,6 +114,7 @@ class PaymentVoucher(models.Model):
     ], null=True, blank=True)
     date = models.DateField(default=timezone.now)
     pv_id = models.CharField(max_length=128, null=True, blank=True, unique=True)
+    is_admin_expense = models.BooleanField(default=False)
 
     def __str__(self):
         return self.prepared_by.username
