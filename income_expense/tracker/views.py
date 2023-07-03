@@ -466,6 +466,7 @@ class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 def summary(request):
     transactions = PaymentVoucher.objects.filter(
         prepared_by__profile__company__in=request.user.profile.company.all(),
+        date__year=timezone.now().year, date__month=timezone.now().month
     )
     if request.method == 'POST':
         date = request.POST['date']
