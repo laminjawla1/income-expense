@@ -587,14 +587,14 @@ def summary(request):
 
     income_categories = Category.objects.filter(
         paymentvoucher__transaction_type = "Income",
-        paymentvoucher__approved=True,
+        # paymentvoucher__approved=True,
         paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
         paymentvoucher__date__year=timezone.now().year,
         paymentvoucher__date__month=timezone.now().month
     ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
     expense_categories = Category.objects.filter(
         paymentvoucher__transaction_type = "Expense",
-        paymentvoucher__approved=True,
+        # paymentvoucher__approved=True,
         paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
         paymentvoucher__date__year=timezone.now().year,
         paymentvoucher__date__month=timezone.now().month
