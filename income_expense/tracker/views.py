@@ -984,6 +984,7 @@ def company_transactions(request, company):
     company_balance = Company.objects.filter(name=company).first().limit
     transactions = PaymentVoucher.objects.filter(
             prepared_by__profile__company__in=Company.objects.filter(name=company),
+            date__year=timezone.now().year, date__month=timezone.now().month
     ).order_by("-date", "prepared_by").all()
     if request.method == 'POST':
         date = request.POST.get('date')
