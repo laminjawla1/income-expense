@@ -38,11 +38,12 @@ class PaymentVoucher(models.Model):
     cheque_number = models.CharField(max_length=50, null=True, blank=True)
     account_number = models.CharField(max_length=50, null=True, blank=True)
     bank_name = models.CharField(max_length=100, choices=[
-        ("Yonna Islamic Microfinance", "Yonna Islamic Microfinance"),
+        ("Access Bank", "Access Bank"),
         ("Ecobank", "Ecobank"),
         ("GT-Bank", "GT-Bank"),
-        ("Access Bank", "Access Bank"),
         ("Trust Bank", "Trust Bank"),
+        ("Yonna Islamic Microfinance", "Yonna Islamic Microfinance"),
+        ("Zenith Bank", "Zenith Bank"),
     ], null=True, blank=True)
 
     item_one = models.CharField('Item 1', max_length=120)
