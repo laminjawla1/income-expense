@@ -348,6 +348,35 @@
             </form>
             </div>
         </div>
-    {% endif %}
-{% endif %}
-{% endblock content %}
+        {% endif %}
+        {% endif %}
+<div class="row">
+    <div class="col-md-12 text-center">
+        {% if user.is_staff %}
+        <small><a class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#payrollModal" data-bs-whatever="@mdo" href="#">Delete PV</a></small>
+          <div class="modal fade" id="payrollModal" tabindex="-1" aria-labelledby="payrollModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="payrollModalLabel">Are you sure you want to delete this pv? </h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body content-section">
+                    <form method="post" action="{% url 'delete_pv' %}" class="d-flex" role="search">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <input type="hidden" name="pv_id" value="{{pv.id}}">
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                                <button type="submit" class="btn btn-primary">Yes</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+    </div>
+</div>
+        {% endblock content %}

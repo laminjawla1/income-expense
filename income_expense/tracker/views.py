@@ -1451,3 +1451,18 @@ def company_leaderboard(request):
     return render(request, "tracker/company_leaderboard.html", {
         "context": context, "current_page": "company_leaderboard", 'company_balance': request.user.profile.company.first().limit
     })
+
+@login_required
+def delete_pv(request):
+    if not request.user.is_staff:
+        raise PermissionDenied()
+    if request.method =='POST':
+        pv_id = request.POST.get('pv_id')
+        pv = PaymentVoucher.objects.filter(id=pv_id)
+        if not pv:
+            messages.error(request, 'Unable to delete the requested payment voucher')
+            return HttpResponseRedirect(reverse('all_transactions'))
+        else:
+            pv.delete()
+            messages.success(request, 'Payment voucher deleted successfully')
+    return HttpResponseRedirect(reverse('all_transactions'))
