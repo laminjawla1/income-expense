@@ -16,7 +16,7 @@
         <tr>
           <th scope="col">Payment_Voucher_id</th>
           <th scope="col">Prepared_By</th>
-          <th scope="col">Request_By</th>
+          <th scope="col">Received_By</th>
           <th scope="col">Category</th>
           <th scope="col">Transaction_Type</th>
           <th scope="col">status</th>
@@ -30,9 +30,9 @@
             <td><a class="transaction_id" href="{% url 'render_pv' transaction.id %}">{{transaction.pv_id}}</a></td>
             <td>{{transaction.prepared_by.first_name}} {{transaction.prepared_by.last_name}}</td>
             {% if transaction.approved %}
-              <td>{{transaction.request_by}}</td>
+              <td>{{transaction.received_by}}</td>
             {% else %}
-              <td>{{transaction.request_by}}</td>
+              <td>{{transaction.received_by}}</td>
             {% endif %}
             <td>{{transaction.category}}</td>
             <td>{{transaction.transaction_type}}</td>

@@ -51,7 +51,7 @@
                 <div> <span class="fw-bolder">Prepared By</span> <small class="ms-3">{{pv.prepared_by.first_name}} {{pv.prepared_by.last_name}}</small> </div>
             </div>
             <div class="col-md-4">
-                <div> <span class="fw-bolder">Request By</span> <small class="ms-3">{{pv.request_by}}</small></div>
+                <div> <span class="fw-bolder">Received By</span> <small class="ms-3">{{pv.received_by}}</small></div>
             </div>
             <div class="col-md-4">
                 <div> <span class="fw-bolder">Category</span> <small class="ms-3">{{pv.category}}</small></div>
@@ -104,6 +104,13 @@
                                 <td>D{{pv.item_two_unit_price|floatformat:2|intcomma}}</td>
                                 <td>D{{pv.item_two_total_price|floatformat:2|intcomma}}</td>
                             </tr>
+                        {% else %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
                         {% endif %}
                         {% if pv.item_three %}
                             <tr>
@@ -111,6 +118,13 @@
                                 <td>{{pv.item_three_quantity}}</td>
                                 <td>D{{pv.item_three_unit_price|floatformat:2|intcomma}}</td>
                                 <td>D{{pv.item_three_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         {% endif %}
                         {% if pv.item_four %}
@@ -120,6 +134,13 @@
                                 <td>D{{pv.item_four_unit_price|floatformat:2|intcomma}}</td>
                                 <td>D{{pv.item_four_total_price|floatformat:2|intcomma}}</td>
                             </tr>
+                        {% else %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
                         {% endif %}
                         {% if pv.item_five %}
                             <tr>
@@ -127,6 +148,13 @@
                                 <td>{{pv.item_five_quantity}}</td>
                                 <td>D{{pv.item_five_unit_price|floatformat:2|intcomma}}</td>
                                 <td>D{{pv.item_five_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         {% endif %}
                         {% if pv.item_six %}
@@ -136,6 +164,13 @@
                                 <td>D{{pv.item_siz_unit_price|floatformat:2|intcomma}}</td>
                                 <td>D{{pv.item_siz_total_price|floatformat:2|intcomma}}</td>
                             </tr>
+                        {% else %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
                         {% endif %}
                         {% if pv.item_seven %}
                             <tr>
@@ -143,6 +178,13 @@
                                 <td>{{pv.item_seven_quantity}}</td>
                                 <td>D{{pv.item_seven_unit_price|floatformat:2|intcomma}}</td>
                                 <td>D{{pv.item_seven_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         {% endif %}
                         {% if pv.item_eight %}
@@ -152,6 +194,13 @@
                                 <td>D{{pv.item_eight_unit_price|floatformat:2|intcomma}}</td>
                                 <td>D{{pv.item_eight_total_price|floatformat:2|intcomma}}</td>
                             </tr>
+                        {% else %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
                         {% endif %}
                         {% if pv.item_nine %}
                             <tr>
@@ -160,6 +209,13 @@
                                 <td>D{{pv.item_nine_unit_price|floatformat:2|intcomma}}</td>
                                 <td>D{{pv.item_nine_total_price|floatformat:2|intcomma}}</td>
                             </tr>
+                        {% else %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
                         {% endif %}
                         {% if pv.item_ten %}
                             <tr>
@@ -167,6 +223,13 @@
                                 <td>{{pv.item_ten_quantity}}</td>
                                 <td>D{{pv.item_ten_unit_price|floatformat:2|intcomma}}</td>
                                 <td>D{{pv.item_ten_total_price|floatformat:2|intcomma}}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         {% endif %}
                     </tbody>
@@ -194,7 +257,7 @@
         </div>
         <div class="row mt-2">
             <div class="col-md-2 text-center">
-                <div> <span class="fw-bolder"><u>Request By</u></span></div>
+                <div> <span class="fw-bolder"><u>Received By</u></span></div>
             </div>
             <div class="col-md-2 text-center">
                 <div> <span class="fw-bolder"><u>Prepared By</u></span></div>
@@ -211,7 +274,7 @@
         </div>
         <div class="row mt-2">
             <div class="col-md-2 text-center">
-                <div> <span class="fw-bolder">{{pv.request_by}}</span></div>
+                <div> <span class="fw-bolder">{{pv.received_by}}</span></div>
             </div>
             <div class="col-md-2 text-center">
                 <div> <span class="fw-bolder">{{pv.prepared_by.first_name}} {{pv.prepared_by.last_name}}</span></div>

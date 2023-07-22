@@ -52,7 +52,7 @@
         <tr>
           <th scope="col">Payment_Voucher_Num</th>
           <th scope="col">Prepared_By</th>
-          <th scope="col">Request_By</th>
+          <th scope="col">Received_By</th>
           <th scope="col">PV_Category</th>
           <th scope="col">Transaction_Type</th>
           <th scope="col">PV_Status</th>
@@ -68,7 +68,7 @@
             {% if not transaction.approved %}
               <td><a class="transaction_id" href="{% url 'update_transaction' transaction.id %}">{{transaction.request_by}}</a></td>
             {% else %}
-              <td>{{transaction.request_by}}</td>
+              <td>{{transaction.received_by}}</td>
             {% endif %}
             <td>{{transaction.category}}</td>
             <td>{{transaction.transaction_type}}</td>

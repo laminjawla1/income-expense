@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
-from django.db.models import Count, Q, Sum
+from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -74,7 +74,7 @@ def transactions(request):
             if not items:
                 messages.error(request, "No transaction is available for download")
                 return HttpResponseRedirect(reverse("transactions"))
-            headers = ["TRANSACTION NUMBER", "TRANSACTION TYPE", "REQUEST BY", "PREPARED BY", "REVIEWED BY", "VERIFIED BY", "APPROVED BY",
+            headers = ["TRANSACTION NUMBER", "TRANSACTION TYPE", "RECEIVED BY", "PREPARED BY", "REVIEWED BY", "VERIFIED BY", "APPROVED BY",
                         "PAYEE", "CHEQUE NUMBER", "ACCOUNT NUMBER", "BANK", "ENTRIES", "QUANTITIES", "UNIT PRICES", "TOTAL",
                         "CATEGORY", "STATUS", "PAYMENT METHOD", "DATE", "DESCRIPTION"]
             
@@ -108,7 +108,7 @@ def transactions(request):
                 if w.item_ten:
                     n_items += 1
                 try:
-                    writer.writerow([w.pv_id, w.transaction_type, w.request_by, f'{w.prepared_by.first_name} {w.prepared_by.last_name}', 
+                    writer.writerow([w.pv_id, w.transaction_type, w.received_by, f'{w.prepared_by.first_name} {w.prepared_by.last_name}', 
                                     f'{w.reviewed_by.first_name} {w.reviewed_by.last_name}',
                                     f'{w.verified_by.first_name} {w.verified_by.last_name}', 
                                     f'{w.approved_by.first_name} {w.approved_by.last_name}', w.payee, w.cheque_number,
@@ -144,7 +144,7 @@ def transactions(request):
         transactions = transactions.filter(
             pv_id__icontains=request.POST.get('pv_id', ""),
             prepared_by__first_name__icontains=request.POST.get('prepared_by', ""),
-            request_by__icontains=request.POST.get('request_by', ""),
+            received_by__icontains=request.POST.get('received_by', ""),
             status__icontains=request.POST.get('status', ""),
             category__name__icontains=request.POST.get('category', ""),
             transaction_type__icontains=request.POST.get('transaction_type', "")
@@ -205,7 +205,7 @@ def admin_expense(request):
         transactions = transactions.filter(
             pv_id__icontains=request.POST.get('pv_id', ""),
             prepared_by__first_name__icontains=request.POST.get('prepared_by', ""),
-            request_by__icontains=request.POST.get('request_by', ""),
+            received_by__icontains=request.POST.get('received_by', ""),
             status__icontains=request.POST.get('status', ""),
             category__name__icontains=request.POST.get('category', ""),
             transaction_type__icontains=request.POST.get('transaction_type', "")
@@ -246,7 +246,7 @@ def admin_expense(request):
 class Transact(LoginRequiredMixin, CreateView):
     model = PaymentVoucher
     template_name = "tracker/transact_form.html"
-    fields = ['date', 'request_by', 'transaction_type', 'is_admin_expense',
+    fields = ['date', 'received_by', 'transaction_type', 'is_admin_expense',
             'item_one', 'item_one_quantity', 'item_one_unit_price', 'item_one_total_price',
             'item_two', 'item_two_quantity', 'item_two_unit_price', 'item_two_total_price',
             'item_three', 'item_three_quantity', 'item_three_unit_price', 'item_three_total_price',
@@ -324,7 +324,7 @@ class Transact(LoginRequiredMixin, CreateView):
     I hope this email finds you well. I would like to inform you that a new transaction has been recorded in our financial system. The details of the transaction are as follows:
 
     Type: {form.instance.transaction_type}
-    Request By: {form.instance.request_by}
+    Request By: {form.instance.received_by}
     Date: {form.instance.date.strftime('%Y-%m-%d')}
     Amount: {gmd(form.instance.total_amount)}
     Category: {form.instance.category}
@@ -371,7 +371,7 @@ class Transact(LoginRequiredMixin, CreateView):
 class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = PaymentVoucher
     template_name = "tracker/transact_update_form.html"
-    fields = ['date', 'request_by', 'transaction_type', 'payee', 
+    fields = ['date', 'received_by', 'transaction_type', 'payee', 
                 'payment_method', 'cheque_number', 'account_number', 'bank_name',
                 'item_one', 'item_one_quantity', 'item_one_unit_price', 'item_one_total_price',
                 'item_two', 'item_two_quantity', 'item_two_unit_price', 'item_two_total_price',
@@ -587,14 +587,12 @@ def summary(request):
 
     income_categories = Category.objects.filter(
         paymentvoucher__transaction_type = "Income",
-        # paymentvoucher__approved=True,
         paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
         paymentvoucher__date__year=timezone.now().year,
         paymentvoucher__date__month=timezone.now().month
     ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
     expense_categories = Category.objects.filter(
         paymentvoucher__transaction_type = "Expense",
-        # paymentvoucher__approved=True,
         paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
         paymentvoucher__date__year=timezone.now().year,
         paymentvoucher__date__month=timezone.now().month
@@ -650,7 +648,7 @@ def render_pv(request, pv_id):
 I hope this email finds you well. I would like to inform you that the recent transaction in our financial system has been reviewed and endorsed by the auditor. The details of the transaction are as follows:
 
 Type: {pv.transaction_type}
-Request By: {pv.request_by}
+Received By: {pv.received_by}
 Date: {pv.date.strftime('%Y-%m-%d')}
 Amount: {gmd(pv.total_amount)}
 Category: {pv.category}
@@ -687,7 +685,7 @@ Best regards,
 I hope this email finds you well. I would like to bring to your attention a recently endorsed transaction that has been reviewed and approved by the auditor. The details of the transaction are as follows:
 
 Type: {pv.transaction_type}
-Request By: {pv.request_by}
+Received By: {pv.received_by}
 Date: {pv.date.strftime('%Y-%m-%d')}
 Total Amount: {gmd(pv.total_amount)}
 Category: {pv.category}
@@ -749,7 +747,7 @@ Sincerely,
 
     Transaction ID: [{pv.pv_id}]
     Type: {pv.transaction_type}
-    Request By: {pv.request_by}
+    Received By: {pv.received_by}
     Date: {pv.date.strftime('%Y-%m-%d')}
     Amount: {gmd(pv.total_amount)}
     Category: {pv.category}
@@ -855,7 +853,7 @@ def all_transactions(request):
             if not items:
                 messages.error(request, "No transaction is available for download")
                 return HttpResponseRedirect(reverse("all_transactions"))
-            headers = ["COMPANY", "TRANSACTION NUMBER", "TRANSACTION TYPE", "REQUEST BY", "PREPARED BY", "REVIEWED BY", "VERIFIED BY",
+            headers = ["COMPANY", "TRANSACTION NUMBER", "TRANSACTION TYPE", "RECEIVED BY", "PREPARED BY", "REVIEWED BY", "VERIFIED BY",
                        "APPROVED BY", "PAYEE", "CHEQUE NUMBER", "ACCOUNT NUMBER", "BANK", "ENTRIES", "QUANTITIES", "UNIT PRICES",
                        "TOTAL", "CATEGORY", "STATUS", "PAYMENT METHOD", "DATE", "DESCRIPTION"]
             
@@ -889,7 +887,7 @@ def all_transactions(request):
                 if w.item_ten:
                     n_items += 1
                 try:
-                    writer.writerow([w.prepared_by.profile.company.first().name, w.pv_id, w.transaction_type, w.request_by,
+                    writer.writerow([w.prepared_by.profile.company.first().name, w.pv_id, w.transaction_type, w.received_by,
                                     f'{w.prepared_by.first_name} {w.prepared_by.last_name}', 
                                     f'{w.reviewed_by.first_name} {w.reviewed_by.last_name}',
                                     f'{w.verified_by.first_name} {w.verified_by.last_name}', 
@@ -925,7 +923,7 @@ def all_transactions(request):
                 return HttpResponseRedirect(reverse('all_transactions'))
             transactions = transactions.filter(
                 pv_id__icontains=request.POST['pv_id'],
-                request_by__icontains=request.POST['request_by'],
+                received_by__icontains=request.POST['received_by'],
                 status__icontains=request.POST['status'],
                 category__name__icontains=request.POST['category'],
                 transaction_type__icontains=request.POST['transaction_type'], 
@@ -937,7 +935,7 @@ def all_transactions(request):
                 transactions = PaymentVoucher.objects.filter(
                     prepared_by__profile__company__name__icontains=request.POST.get('company'),
                     pv_id__icontains=request.POST['pv_id'],
-                    request_by__icontains=request.POST['request_by'],
+                    received_by__icontains=request.POST['received_by'],
                     status__icontains=request.POST['status'],
                     category__name__icontains=request.POST['category'],
                     transaction_type__icontains=request.POST['transaction_type']
@@ -945,7 +943,7 @@ def all_transactions(request):
             else:
                 transactions = PaymentVoucher.objects.filter(
                     pv_id__icontains=request.POST.get('pv_id', ""),
-                    request_by__icontains=request.POST.get('request_by', ""),
+                    received_by__icontains=request.POST.get('received_by', ""),
                     status__icontains=request.POST.get('status', ""),
                     category__name__icontains=request.POST.get('category', ""),
                     transaction_type__icontains=request.POST.get('transaction_type', "")
@@ -1003,7 +1001,7 @@ def company_transactions(request, company):
                 prepared_by__profile__company__in=Company.objects.filter(
                                     name=request.POST.get('company', f"{request.user.profile.company.first().name}")),
                 pv_id__icontains=request.POST['pv_id'],
-                request_by__icontains=request.POST['request_by'],
+                received_by__icontains=request.POST['received_by'],
                 status__icontains=request.POST['status'],
                 category__name__icontains=request.POST['category'],
                 transaction_type__icontains=request.POST['transaction_type'], 
@@ -1016,7 +1014,7 @@ def company_transactions(request, company):
                 transactions = PaymentVoucher.objects.filter(
                     prepared_by__profile__company__name__icontains=request.POST.get('company'),
                     pv_id__icontains=request.POST['pv_id'],
-                    request_by__icontains=request.POST['request_by'],
+                    received_by__icontains=request.POST['received_by'],
                     status__icontains=request.POST['status'],
                     category__name__icontains=request.POST['category'],
                     transaction_type__icontains=request.POST['transaction_type']
@@ -1024,7 +1022,7 @@ def company_transactions(request, company):
             else:
                 transactions = PaymentVoucher.objects.filter(
                     pv_id__icontains=request.POST['pv_id'],
-                    request_by__icontains=request.POST['request_by'],
+                    received_by__icontains=request.POST['received_by'],
                     status__icontains=request.POST['status'],
                     category__name__icontains=request.POST['category'],
                     transaction_type__icontains=request.POST['transaction_type']
