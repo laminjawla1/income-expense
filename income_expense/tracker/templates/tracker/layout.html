@@ -87,6 +87,12 @@
                 {% else %}
                     <a href="{% url 'company_leaderboard' %}"><div class="btn btn-primary">Company Leaderboard</div></a>
                 {% endif %}
+                <br><br>
+                {% if current_page == "zone_expense" %}
+                    <a href="{% url 'zone_expense' %}"><div class="btn btn-primary active">Zone Expense</div></a>
+                {% else %}
+                    <a href="{% url 'zone_expense' %}"><div class="btn btn-primary">Zone Expense</div></a>
+                {% endif %}
               </div>
             {% endif %}
             <div class="container">
@@ -115,28 +121,46 @@
                         {% else %}
                             <a class="nav-item nav-link" href="{% url 'summary' %}">Summary</a>
                         {% endif %}
-                        {% if current_page == "admin_expense" %}
-                            <a class="nav-item nav-link active" href="{% url 'admin_expense' %}">Admin Expense</a>
-                        {% else %}
-                            <a class="nav-item nav-link" href="{% url 'admin_expense' %}">Admin Expense</a>
+                        {% if not user.profile.title == "Supervisor" %}
+                            {% if current_page == "admin_expense" %}
+                                <a class="nav-item nav-link active" href="{% url 'admin_expense' %}">Admin Expense</a>
+                            {% else %}
+                                <a class="nav-item nav-link" href="{% url 'admin_expense' %}">Admin Expense</a>
+                            {% endif %}
                         {% endif %}
                         
                     </div>
                     <!-- Navbar Right Side -->
                     {% if user.is_authenticated %}
-                    <div class="navbar-nav ms-auto">
-                        {% if company_balance > 10000 %}
-                            <a style="color: rgb(13, 159, 13);" class="nav-item nav-link active">Balance: D{{company_balance|floatformat:2|intcomma}}</a>
+                        {% if user.profile.title == "Supervisor" %}
+                            <div class="navbar-nav ms-auto">
+                                {% if company_balance > 10000 %}
+                                    <a style="color: rgb(13, 159, 13);" class="nav-item nav-link active">Balance: D{{company_balance|floatformat:2|intcomma}}</a>
+                                {% else %}
+                                    <a style="color: red" class="nav-item nav-link active">Balance: D{{company_balance|floatformat:2|intcomma}}</a>
+                                {% endif %}
+                            {% if current_page == "profile" %}
+                                <a class="nav-item nav-link active" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
+                            {% else %}
+                                <a class="nav-item nav-link" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
+                            {% endif %}
+                            <a style="color: red" class="nav-item nav-link" href="{% url 'logout' %}"><span class="material-symbols-outlined">logout</span></a>
+                            </div>
                         {% else %}
-                            <a style="color: red" class="nav-item nav-link active">Balance: D{{company_balance|floatformat:2|intcomma}}</a>
+                            <div class="navbar-nav ms-auto">
+                                {% if company_balance > 10000 %}
+                                    <a style="color: rgb(13, 159, 13);" class="nav-item nav-link active">Balance: D{{company_balance|floatformat:2|intcomma}}</a>
+                                {% else %}
+                                    <a style="color: red" class="nav-item nav-link active">Balance: D{{company_balance|floatformat:2|intcomma}}</a>
+                                {% endif %}
+                            {% if current_page == "profile" %}
+                                <a class="nav-item nav-link active" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
+                            {% else %}
+                                <a class="nav-item nav-link" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
+                            {% endif %}
+                            <a style="color: red" class="nav-item nav-link" href="{% url 'logout' %}"><span class="material-symbols-outlined">logout</span></a>
+                            </div>
                         {% endif %}
-                    {% if current_page == "profile" %}
-                        <a class="nav-item nav-link active" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
-                    {% else %}
-                        <a class="nav-item nav-link" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
-                    {% endif %}
-                      <a style="color: red" class="nav-item nav-link" href="{% url 'logout' %}"><span class="material-symbols-outlined">logout</span></a>
-                    </div>
                     {% endif %}
                 </div>
             </div>

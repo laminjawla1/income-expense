@@ -2,14 +2,20 @@ from django.db import models
 from django.contrib.auth.models import User
 from tracker.models import Company
 from PIL import Image
+from zone_expense.models import Zone
 
 
+class Role(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(default='profile_pics/default.png', upload_to='profile_pics')
-    # company= models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
     company = models.ManyToManyField(Company, blank=True, related_name="employees")
     title = models.CharField(max_length=50, null=True, blank=True, choices=[
+        ("Supervisor", "Supervisor"),
         ("IT", "IT"),
         ("HR", "HR"),
         ("Compliance Officer", "Compliance Officer"),
@@ -18,6 +24,8 @@ class Profile(models.Model):
         ("Manager", "Manager"),
         ("CEO", "CEO"),
     ])
+    role = models.ManyToManyField(Role, blank=True, related_name="roles")
+    zone = models.ForeignKey(Zone, blank=True, null=True, on_delete=models.CASCADE, default="")
 
     def __str__(self) -> str:
         return f"{self.user.username}'s profile"

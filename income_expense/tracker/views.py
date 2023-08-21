@@ -24,35 +24,47 @@ from .utils import gmd
 @login_required
 def dashboard(request):
     if request.user.is_staff:
-        total_cfs = len(PaymentVoucher.objects.all())
-        audit_level = len(PaymentVoucher.objects.filter(status="Audit Level"))
-        approved_cfs = len(PaymentVoucher.objects.filter(approved=True))
-        management = len(PaymentVoucher.objects.filter(status="Management Level"))
-        final_review = len(PaymentVoucher.objects.filter(status="Final Review"))
-        on_hold = len(PaymentVoucher.objects.filter(status="On Hold"))
-        transactions = PaymentVoucher.objects.order_by('-total_amount').all()[:5]
-        total_transactions = PaymentVoucher.objects.count()
-    else:
-        total_cfs = len(PaymentVoucher.objects.filter(prepared_by__profile__company__in=request.user.profile.company.all()))
-        audit_level = len(PaymentVoucher.objects.filter(
-                prepared_by__profile__company__in=request.user.profile.company.all(), status="Audit Level"))
-        approved_cfs = len(PaymentVoucher.objects.filter(
-                prepared_by__profile__company__in=request.user.profile.company.all(), approved=True))
-        management = len(PaymentVoucher.objects.filter(
-                prepared_by__profile__company__in=request.user.profile.company.all(), status="Management Level"))
-        final_review = len(PaymentVoucher.objects.filter(
-                prepared_by__profile__company__in=request.user.profile.company.all(), status="Final Review"))
-        on_hold = len(PaymentVoucher.objects.filter(
-                prepared_by__profile__company__in=request.user.profile.company.all(), status="On Hold"))
-        transactions = PaymentVoucher.objects.filter(
+        query_set = PaymentVoucher.objects.all()
+        total_cfs = len(query_set)
+        audit_level = len(query_set.filter(status="Audit Level"))
+        approved_cfs = len(query_set.filter(approved=True))
+        management = len(query_set.filter(status="Management Level"))
+        final_review = len(query_set.filter(status="Final Review"))
+        on_hold = len(query_set.filter(status="On Hold"))
+        transactions = query_set.filter(date__year=timezone.now().year, date__month=timezone.now().month).order_by('-total_amount')[:5]
+        total_transactions = query_set.count()
+    elif request.user.profile.title == "Supervisor":
+        query_set = PaymentVoucher.objects.filter(
                 prepared_by__profile__company__in=request.user.profile.company.all(),
-            ).order_by('-total_amount')[:5]
-        total_transactions = PaymentVoucher.objects.filter(prepared_by__profile__company__in=request.user.profile.company.all()).count()
+                zone=request.user.profile.zone,)
+        total_cfs = len(query_set)
+        audit_level = len(query_set.filter(status="Audit Level"))
+        approved_cfs = len(query_set.filter(approved=True))
+        management = len(query_set.filter(status="Management Level"))
+        final_review = len(query_set.filter(status="Final Review"))
+        on_hold = len(query_set.filter(status="On Hold"))
+        transactions = query_set.filter(date__year=timezone.now().year, date__month=timezone.now().month).order_by('-total_amount')[:5]
+        total_transactions = query_set.count()
+    else:
+        query_set = PaymentVoucher.objects.filter(
+                prepared_by__profile__company__in=request.user.profile.company.all())
+        total_cfs = len(query_set)
+        audit_level = len(query_set.filter(status="Audit Level"))
+        approved_cfs = len(query_set.filter(approved=True))
+        management = len(query_set.filter(status="Management Level"))
+        final_review = len(query_set.filter(status="Final Review"))
+        on_hold = len(query_set.filter(status="On Hold"))
+        transactions = query_set.filter(date__year=timezone.now().year, date__month=timezone.now().month).order_by('-total_amount')[:5]
+        total_transactions = query_set.count()
 
+    company_balance = request.user.profile.company.first().limit
+    if request.user.profile.title == "Supervisor":
+        company_balance = request.user.profile.zone.limit
     return render(request, "tracker/dashboard.html",{
         'total_cfs': total_cfs, 'audit_level': audit_level, 'approved_cfs': approved_cfs, 'management': management,
         'final_review': final_review, 'on_hold': on_hold, 'current_page': 'dashboard', 'recents': transactions,
-        'total_transactions': total_transactions, 'company_balance': request.user.profile.company.first().limit
+        'total_transactions': total_transactions, 'company_balance': company_balance,
+        'current_month': timezone.now()
     })
 
 @login_required
@@ -71,6 +83,10 @@ def transactions(request):
                 date__gte=datetime.strptime(from_date, '%Y-%m-%d'),
                 date__lte=datetime.strptime(to_date, '%Y-%m-%d'),
             ).order_by('date')
+            name = request.user.profile.company.first()
+            if request.user.profile.title == "Supervisor":
+                items = items.filter(zone=request.user.profile.zone)
+                name = request.user.profile.zone
             if not items:
                 messages.error(request, "No transaction is available for download")
                 return HttpResponseRedirect(reverse("transactions"))
@@ -80,7 +96,7 @@ def transactions(request):
             
             response = HttpResponse(
                 content_type='text/csv',
-                headers = {'Content-Disposition': f'attachment; filename="{request.user.profile.company.first()}_transactions_{from_date}_to_{to_date}.csv"'},
+                headers = {'Content-Disposition': f'attachment; filename="{name}_transactions_{from_date}_to_{to_date}.csv"'},
             )
             writer = csv.writer(response)
             writer.writerow(["PAYMENT VOUCHERS"])
@@ -152,6 +168,8 @@ def transactions(request):
 
         if not transactions:
             messages.error(request, "No Entries Available")
+    if request.user.profile.title == "Supervisor":
+        transactions = transactions.filter(zone=request.user.profile.zone)
 
     if request.method == "GET":
         paginator = Paginator(transactions, 6)
@@ -176,10 +194,13 @@ def transactions(request):
 
     profit = income_amount - expense_amount
 
+    company_balance = request.user.profile.company.first().limit
+    if request.user.profile.title == "Supervisor":
+        company_balance = request.user.profile.zone.limit
     return render(request, "tracker/transactions.html", {
         'transactions': paginator_page, 'current_page': 'transactions',
         'income_amount': income_amount, 'expense_amount': expense_amount,
-        'profit': profit, 'company_balance': request.user.profile.company.first().limit
+        'profit': profit, 'company_balance': company_balance
     })
 
 @login_required
@@ -260,12 +281,18 @@ class Transact(LoginRequiredMixin, CreateView):
             'total_amount', 'category', 'payment_method', 'status', 'description']
 
     def form_valid(self, form):
-        if form.instance.status != "Audit Level": # and form.instance.status != "Accounts Desk":
-            messages.error(self.request, "Sorry: You can only change the status to Audit Level")
-            return HttpResponseRedirect(reverse("transact"))
+        if self.request.user.profile.title == "Supervisor":
+            if form.instance.status != "Accounts Desk":
+                messages.error(self.request, "Sorry: You can only change the status to Audit Level")
+                return HttpResponseRedirect(reverse("transact"))
+        else:
+            if form.instance.status != "Audit Level":
+                messages.error(self.request, "Sorry: You can only change the status to Audit Level")
+                return HttpResponseRedirect(reverse("transact"))
         
         form.instance.prepared_by = self.request.user
         form.instance.total_amount = 0
+        form.instance.zone = self.request.user.profile.zone
 
         if form.instance.item_one and form.instance.item_one_quantity and form.instance.item_one_unit_price:
             form.instance.item_one_total_price = form.instance.item_one_quantity * form.instance.item_one_unit_price
@@ -308,12 +335,20 @@ class Transact(LoginRequiredMixin, CreateView):
             form.instance.total_amount += form.instance.item_ten_total_price
         
         if form.instance.transaction_type == 'Expense' and not form.instance.is_admin_expense:
-            if not self.request.user.profile.company.first().limit - form.instance.total_amount >= 0:
-                messages.error(self.request, f"The balance of {self.request.user.profile.company.first()} is \
-                               {gmd(self.request.user.profile.company.first().limit)}. Not sufficient to make this expense")
-                return HttpResponseRedirect(reverse("transact"))
+            if self.request.user.profile.title == "Supervisor":
+                if not self.request.user.profile.zone.limit - form.instance.total_amount >= 0:
+                    messages.error(self.request, f"The balance of {self.request.user.profile.zone} is \
+                                {gmd(self.request.user.profile.zone.limit)}. Not sufficient to make this expense")
+                    return HttpResponseRedirect(reverse("transact"))
+            else:
+                if not self.request.user.profile.company.first().limit - form.instance.total_amount >= 0:
+                    messages.error(self.request, f"The balance of {self.request.user.profile.company.first()} is \
+                                {gmd(self.request.user.profile.company.first().limit)}. Not sufficient to make this expense")
+                    return HttpResponseRedirect(reverse("transact"))
 
         auditors = User.objects.filter(profile__company__in=self.request.user.profile.company.all(), profile__title="Auditor").all()
+        if self.request.user.profile.title == "Supervisor":
+            auditors = User.objects.filter(profile__company__in=self.request.user.profile.company.all(), profile__title="Accountant").all()
         for auditor in auditors:
             send_mail(
                 f' New Transaction Recorded - [{form.instance.transaction_type}]',
@@ -351,7 +386,14 @@ class Transact(LoginRequiredMixin, CreateView):
         ).count()
         transactions = PaymentVoucher.objects.filter(
             prepared_by__profile__company__in=self.request.user.profile.company.all(),
-        ).order_by('-date')[:10]
+        ).order_by('-date')
+        if self.request.user.profile.title == "Supervisor":
+            transactions = transactions.filter(zone=self.request.user.profile.zone)
+            total_transactions = PaymentVoucher.objects.filter(
+                prepared_by__profile__company__in=self.request.user.profile.company.all(),
+                zone=self.request.user.profile.zone,
+            ).count()
+        transactions = transactions[:10]
         context = super(Transact, self).get_context_data(*args, **kwargs)
         context['button'] = 'Add'
         context['legend'] = 'Add Transaction'
@@ -360,12 +402,16 @@ class Transact(LoginRequiredMixin, CreateView):
         context['recents'] = transactions
         context['current_page'] = 'transactions'
         context['company_balance'] = self.request.user.profile.company.first().limit
+        if self.request.user.profile.title == "Supervisor":
+            context['company_balance'] = self.request.user.profile.zone.limit
         return context
     
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.fields['status'].choices = [("Audit Level", "Audit Level")]
         form.fields['date'].widget=forms.DateInput(attrs={'type': 'date'})
+        if self.request.user.profile.title == "Supervisor":
+            form.fields['status'].choices = [("Accounts Desk", "Accounts Desk")]
         return form
 
 class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -438,6 +484,9 @@ class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     
     def test_func(self):
         transaction = self.get_object()
+        if self.request.user.profile.title == "Supervisor":
+            if transaction.prepared_by.profile.zone != self.request.user.profile.zone:
+                return False
         return not transaction.approved and not transaction.prepared_by.profile.company in self.request.user.profile.company.all()
     
     def get_context_data(self, *args, **kwargs):
@@ -446,7 +495,14 @@ class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         ).count()
         transactions = PaymentVoucher.objects.filter(
             prepared_by__profile__company__in=self.request.user.profile.company.all(),
-        ).order_by('-date')[:15]
+        ).order_by('-date')
+        if self.request.user.profile.title == "Supervisor":
+            transactions = transactions.filter(zone=self.request.user.profile.zone)
+            total_transactions = PaymentVoucher.objects.filter(
+                prepared_by__profile__company__in=self.request.user.profile.company.all(),
+                zone=self.request.user.profile.zone,
+            ).count()
+        transactions = transactions[:10]
         context = super(UpdateTransact, self).get_context_data(*args, **kwargs)
         context['button'] = 'Update Transaction'
         context['legend'] = 'Update Transaction'
@@ -455,6 +511,8 @@ class UpdateTransact(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         context['recents'] = transactions
         context['current_page'] = 'transactions'
         context['company_balance'] = self.request.user.profile.company.first().limit
+        if self.request.user.profile.title == "Supervisor":
+            context['company_balance'] = self.request.user.profile.zone.limit
         return context
     
     def get_form(self, form_class=None):
@@ -468,6 +526,11 @@ def summary(request):
         prepared_by__profile__company__in=request.user.profile.company.all(),
         date__year=timezone.now().year, date__month=timezone.now().month
     )
+    company_balance = request.user.profile.company.first().limit
+    if request.user.profile.title == "Supervisor":
+        company_balance = request.user.profile.zone.limit
+    if request.user.profile.title == "Supervisor":
+        transactions = transactions.filter(zone=request.user.profile.zone)
     if request.method == 'POST':
         date = request.POST['date']
         if date:
@@ -521,14 +584,16 @@ def summary(request):
                 paginator1 = paginator1.page(page)
             except:
                 paginator1 = paginator1.page(1)
-
-            income_categories = Category.objects.filter(
+            category_objects = Category.objects.all()
+            if request.user.profile.title == "Supervisor":
+                category_objects = category_objects.filter(paymentvoucher__zone=request.user.profile.zone)
+            income_categories = category_objects.filter(
                 paymentvoucher__transaction_type = "Income",
                 paymentvoucher__approved=True,
                 paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
                 paymentvoucher__date__year=_date.year, paymentvoucher__date__month=_date.month,
             ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
-            expense_categories = Category.objects.filter(
+            expense_categories = category_objects.filter(
                 paymentvoucher__transaction_type = "Expense",
                 paymentvoucher__approved=True,
                 paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
@@ -539,7 +604,7 @@ def summary(request):
             'expenses': paginator, 'expense_total_amount_total': expense_total_amount_total, 'incomes': paginator1,
             'income_total_amount_total': income_total_amount_total, 'incomes_t': incomes_t, 'income_categories': income_categories,
             'expenses_t': expenses_t, 'date': timezone.now(), 'current_page': 'summary', 'expense_categories': expense_categories,
-            'company_balance': request.user.profile.company.first().limit
+            'company_balance': company_balance
     })
     expenses = transactions.filter(
         prepared_by__profile__company__in=request.user.profile.company.all(),
@@ -585,13 +650,16 @@ def summary(request):
     except:
         paginator1 = paginator1.page(1)
 
-    income_categories = Category.objects.filter(
+    category_objects = Category.objects.all()
+    if request.user.profile.title == "Supervisor":
+        category_objects = category_objects.filter(paymentvoucher__zone=request.user.profile.zone)
+    income_categories = category_objects.filter(
         paymentvoucher__transaction_type = "Income",
         paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
         paymentvoucher__date__year=timezone.now().year,
         paymentvoucher__date__month=timezone.now().month
     ).annotate(total_amount=Sum('paymentvoucher__total_amount'))
-    expense_categories = Category.objects.filter(
+    expense_categories = category_objects.filter(
         paymentvoucher__transaction_type = "Expense",
         paymentvoucher__prepared_by__profile__company__in=request.user.profile.company.all(),
         paymentvoucher__date__year=timezone.now().year,
@@ -602,7 +670,7 @@ def summary(request):
         'expenses': paginator, 'expense_total_amount_total': expense_total_amount_total, 'incomes': paginator1,
         'income_total_amount_total': income_total_amount_total, 'incomes_t': incomes_t, 'income_categories': income_categories,
         'expenses_t': expenses_t, 'date': timezone.now(), 'current_page': 'summary', 'expense_categories': expense_categories,
-        'company_balance': request.user.profile.company.first().limit
+        'company_balance': company_balance
     })
 
 @login_required
@@ -625,8 +693,12 @@ def render_pv(request, pv_id):
     
     # Security check
     if not request.user.is_staff:
-        if not pv.prepared_by.profile.company.first() in request.user.profile.company.all():
-            raise PermissionDenied()
+        if request.user.profile.title == "Supervisor":
+            if pv.prepared_by.profile.zone != request.user.profile.zone:
+                raise PermissionDenied()
+        else:
+            if not pv.prepared_by.profile.company.first() in request.user.profile.company.all():
+                raise PermissionDenied()
         
     if request.method == 'POST':                                                                 
         pv = PaymentVoucher.objects.filter(id=request.POST.get('pv_id')).first()
@@ -777,14 +849,24 @@ Sincerely,
                     return HttpResponseRedirect(reverse('render_pv', args=[pv_id]))
         if request.user.is_staff:
             if status == "Approved":
-                    if pv.transaction_type == 'Expense' and not pv.is_admin_expense:
-                        company = pv.prepared_by.profile.company.first()
-                        if company.limit - pv.total_amount >= 0:
-                            company.limit -= pv.total_amount
-                            company.save()
-                        else:
-                            messages.error(request, f"The balance of {company} is {gmd(company.limit)}. Not sufficient to make this expense")
-                            return HttpResponseRedirect(reverse("transactions"))
+                    if pv.prepared_by.profile.title == "Supervisor":
+                        if pv.transaction_type == 'Expense':
+                            zone = pv.prepared_by.profile.zone
+                            if zone.limit - pv.total_amount >= 0:
+                                zone.limit -= pv.total_amount
+                                zone.save()
+                            else:
+                                messages.error(request, f"The balance of {zone} is {gmd(zone.limit)}. Not sufficient to make this expense")
+                                return HttpResponseRedirect(reverse("transactions"))
+                    else:
+                        if pv.transaction_type == 'Expense' and not pv.is_admin_expense:
+                            company = pv.prepared_by.profile.company.first()
+                            if company.limit - pv.total_amount >= 0:
+                                company.limit -= pv.total_amount
+                                company.save()
+                            else:
+                                messages.error(request, f"The balance of {company} is {gmd(company.limit)}. Not sufficient to make this expense")
+                                return HttpResponseRedirect(reverse("transactions"))
                     send_mail(
                         f'RE: Endorsed Transaction Notification - [{pv.transaction_type}]',
                         f"""Dear {pv.verified_by.first_name} {pv.verified_by.last_name},
@@ -815,9 +897,12 @@ CEO, Yonna Group
         return HttpResponseRedirect(reverse('transactions'))
     total_amount_in_words = inflect.engine()
     total_amount_in_words = total_amount_in_words.number_to_words(int(pv.total_amount)).capitalize() + " dalasis"
+    company_balance = request.user.profile.company.first().limit
+    if request.user.profile.title == "Supervisor":
+        company_balance = request.user.profile.zone.limit
     return render(request, 'tracker/pv.html', {
         'pv': pv, 'total_amount_in_words': total_amount_in_words, 'current_page': 'transactions',
-        'company_balance': request.user.profile.company.first().limit
+        'company_balance': company_balance
     })
 
 @login_required

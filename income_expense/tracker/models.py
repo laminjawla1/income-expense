@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.urls import reverse
 from django.core.validators import MinValueValidator
+from zone_expense.models import Zone
 
 class Company(models.Model):
     class Meta:
@@ -45,6 +46,7 @@ class PaymentVoucher(models.Model):
         ("Yonna Islamic Microfinance", "Yonna Islamic Microfinance"),
         ("Zenith Bank", "Zenith Bank"),
     ], null=True, blank=True)
+    zone = models.ForeignKey(Zone, on_delete=models.CASCADE, blank=True, null=True, default="", related_name="zones")
 
     item_one = models.CharField('Item 1', max_length=120)
     item_one_quantity = models.IntegerField('Quantity', default=0, validators=[MinValueValidator(0)])

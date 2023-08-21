@@ -11,9 +11,15 @@
 </style>
 <div class="row">
     <div class="col-sm-6">
-        <marquee>
-            <h3 style="color: white; text-align: center;" class="fw-bold">This information contains the incomes and expenses of {{user.profile.company.first}}.</h3>
-        </marquee>
+        {% if user.profile.title == "Supervisor" %}
+            <marquee>
+                <h3 style="color: white; text-align: center;" class="fw-bold">This information contains the incomes and expenses of {{user.profile.zone}}.</h3>
+            </marquee>
+        {% else %}
+            <marquee>
+                <h3 style="color: white; text-align: center;" class="fw-bold">This information contains the incomes and expenses of {{user.profile.company.first}}.</h3>
+            </marquee>
+        {% endif %}
     </div>
     <div class="col-sm-6">
         <form method="post" class="d-flex" role="search">
