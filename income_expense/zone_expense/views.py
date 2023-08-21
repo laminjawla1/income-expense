@@ -15,7 +15,7 @@ from tracker.models import PaymentVoucher, Company
 
 @login_required
 def zone_expense(request):
-    zones = Zone.objects.all()
+    zones = Zone.objects.all().order_by('name')
     domain = "Yonna Zones"
     transactions = PaymentVoucher.objects.filter(
         date__year=timezone.now().year, date__month=timezone.now().month,
