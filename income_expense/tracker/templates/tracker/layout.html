@@ -96,7 +96,11 @@
               </div>
             {% endif %}
             <div class="container">
-                <a style="color: white;" class="navbar-brand mr-4"><i class="fa-sharp fa-solid fa-buildings"></i>{{user.profile.company.first.name}}</a>
+                {% if user.profile.title == "Supervisor" %}
+                    <a style="color: white;" class="navbar-brand mr-4"><i class="fa-sharp fa-solid fa-buildings"></i>{{user.profile.zone}}</a>
+                {% else %}
+                    <a style="color: white;" class="navbar-brand mr-4"><i class="fa-sharp fa-solid fa-buildings"></i>{{user.profile.company.first.name}}</a>
+                {% endif %}
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle"
                     aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
