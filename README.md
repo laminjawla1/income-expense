@@ -1,6 +1,6 @@
 # Income Expense Tracker Project (Django)
 
-![Income Expense Tracker](dash.jpeg)
+![Income Expense Tracker](income_expense/dash.jpeg)
 
 ## Table of Contents
 - [Introduction](#introduction)
