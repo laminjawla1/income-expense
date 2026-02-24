@@ -350,33 +350,36 @@ class Transact(LoginRequiredMixin, CreateView):
         if self.request.user.profile.title == "Supervisor":
             auditors = User.objects.filter(profile__company__in=self.request.user.profile.company.all(), profile__title="Accountant").all()
         for auditor in auditors:
-            send_mail(
-                f' New Transaction Recorded - [{form.instance.transaction_type}]',
+            try:
+                send_mail(
+                    f' New Transaction Recorded - [{form.instance.transaction_type}]',
 
-                
-                f"""Dear {auditor.first_name} {auditor.last_name},
+                    
+                    f"""Dear {auditor.first_name} {auditor.last_name},
 
-    I hope this email finds you well. I would like to inform you that a new transaction has been recorded in our financial system. The details of the transaction are as follows:
+        I hope this email finds you well. I would like to inform you that a new transaction has been recorded in our financial system. The details of the transaction are as follows:
 
-    Type: {form.instance.transaction_type}
-    Request By: {form.instance.received_by}
-    Date: {form.instance.date.strftime('%Y-%m-%d')}
-    Amount: {gmd(form.instance.total_amount)}
-    Category: {form.instance.category}
+        Type: {form.instance.transaction_type}
+        Request By: {form.instance.received_by}
+        Date: {form.instance.date.strftime('%Y-%m-%d')}
+        Amount: {gmd(form.instance.total_amount)}
+        Category: {form.instance.category}
 
-    Description: {form.instance.description}
+        Description: {form.instance.description}
 
-    Please review the transaction at your earliest convenience and ensure its accuracy. If you have any questions or require additional information, please don't hesitate to reach out to me.
+        Please review the transaction at your earliest convenience and ensure its accuracy. If you have any questions or require additional information, please don't hesitate to reach out to me.
 
-    Thank you for your attention to this matter.
+        Thank you for your attention to this matter.
 
-    Best regards,
-    {form.instance.prepared_by.first_name} {form.instance.prepared_by.last_name}
-    {form.instance.prepared_by.profile.title} - {form.instance.prepared_by.profile.company.first}""", 
-                'yonnatech.g@gmail.com',
-                [ auditor.email],
-                fail_silently=False,
-            )
+        Best regards,
+        {form.instance.prepared_by.first_name} {form.instance.prepared_by.last_name}
+        {form.instance.prepared_by.profile.title} - {form.instance.prepared_by.profile.company.first}""", 
+                    'yonnatech.g@gmail.com',
+                    [ auditor.email],
+                    fail_silently=False,
+                )
+            except Exception:
+                print("Failed to send email")
         messages.success(self.request, f"New {form.instance.transaction_type} added successfully 😊")
         return super().form_valid(form)
 
